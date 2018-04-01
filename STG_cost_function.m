@@ -10,9 +10,11 @@ cost_vector = zeros(6,3);
 cost_vector(1,:) = 1e5; % is it bursting?  
 cost_vector(2,:) = 1e4;
 cost_vector(3,:) = 1e3;
-cost_vector(4,:) = 1e2; % burst frequency
-cost_vector(5,:) = 1e2; % duty cycle
-cost_vector(6,:) = 1e2; % duration 
+% all the STG-specific things are optimized 
+% in parallel in the last level: delays,
+% burst frequency, duty cycle, duration, gaps
+cost_vector(4,:) = 1e2; 
+
 
 
 C = sum(cost_vector(:));
@@ -72,7 +74,7 @@ level_cost = 1e5;
 
 
 [V,Ca] = x.integrate;
-cutoff = floor(5e3/x.dt);
+cutoff = floor(10e3/x.dt);
 V = V(cutoff:end,:);
 Ca = Ca(cutoff:end,:);
 
@@ -351,246 +353,62 @@ end
 
 
 % duty cycle
-
 all_duty_cycle = nanmean(all_durations)./all_periods;
 for i = 1:3
-	cost_vector(6,i) = level_cost*bin_cost(duty_cycle_range(:,i),all_duty_cycle(i));
+	cost_vector(4,i) = cost_vector(4,i) + level_cost*bin_cost(duty_cycle_range(:,i),all_duty_cycle(i));
 end
 
 
 C = sum(cost_vector(:));
 
-return
+% measure gaps from PD to LP ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+all_gaps = NaN*nonnans(all_burst_ends(:,1));
 
-% % first find burst metrics for all three neurons
-% for i = 3:-1:1
-% 	metrics(i) = psychopomp.findBurstMetrics(V(:,i),Ca(:,i),Inf, Inf,0);
+for i = 2:length(all_gaps)-1
+	[~,idx] = min(abs(all_burst_ends(i,1) - all_burst_starts(:,2)));
+	all_gaps(i) = (all_burst_starts(idx,2) - all_burst_ends(i,1));
+end
 
-% 	metrics(i).spike_times = metrics(i).spike_times*x.dt;
-% 	metrics(i).Ca_peaks = metrics(i).Ca_peaks*x.dt;
-% 	metrics(i).Ca_mins = metrics(i).Ca_mins*x.dt;
-% 	metrics(i).last_spike_loc = metrics(i).last_spike_loc*x.dt;
-% 	metrics(i).first_spike_loc = metrics(i).first_spike_loc*x.dt;
+C = C + level_cost*bin_cost(Gap_PD_LP_range, nanmean(all_gaps));
 
+% measure gaps from LP to PY ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-% 	% early exit -- check if everything is OK
-% 	if metrics(i).burst_metrics(10) ~= 0
-% 		C = fail_cost;
-% 		return
-% 	end
+all_gaps = NaN*nonnans(all_burst_ends(:,2));
 
-% 	if isempty(metrics(i).Ca_mins) || isempty(metrics(i).first_spike_loc) || isempty(metrics(i).last_spike_loc) 
-% 		C = fail_cost;
-% 		return
-% 	end
+for i = 2:length(all_gaps)-1
+	[~,idx] = min(abs(all_burst_ends(i,2) - all_burst_starts(:,3)));
+	all_gaps(i) = (all_burst_starts(idx,3) - all_burst_ends(i,2));
+end
 
-% end
+C = C + level_cost*bin_cost(Gap_PD_LP_range, nanmean(all_gaps));
 
 
+% now measure delays
 
+all_delays = NaN*nonnans(all_burst_starts(:,1));
 
-% % now measure the neuron-specific things
+for i = 2:length(all_delays)-1
+	[~,idx] = min(abs(all_burst_starts(i,1) - all_burst_starts(:,2)));
+	all_delays(i) = (all_burst_starts(idx,2) - all_burst_starts(i,1));
+end
 
-% try
+C = C + level_cost*bin_cost(Delay_PD_LP_range, nanmean(all_delays));
 
-% 	for i = 1:3
-% 		% measure the cost of the cycle period for this neuron
-% 		C = C +  basin_cost(cycle_period_range, metrics(i).burst_metrics(1)*x.dt*1e-3);
+% measure delay from PD -> PY ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-% 		% measure the duration of this neuron
-% 		this_duration = [];
-% 		for j = (length(metrics(i).Ca_mins)-1):-1:1
-% 			if isnan(metrics(i).Ca_mins(j))
-% 				continue
-% 			end
-% 			if isnan(metrics(i).Ca_mins(j+1))
-% 				continue
-% 			end
-% 			these_spikes = metrics(i).spike_times(metrics(i).spike_times > metrics(i).Ca_mins(j) & metrics(i).spike_times < metrics(i).Ca_mins(j+1));
-% 			this_duration(j) = these_spikes(end) - these_spikes(1);
-% 		end
-% 		this_duration = 1e-3*mean(nonzeros(this_duration));
+all_delays = NaN*nonnans(all_burst_starts(:,1));
 
+for i = 2:length(all_delays)-1
+	[~,idx] = min(abs(all_burst_starts(i,1) - all_burst_starts(:,3)));
+	all_delays(i) = (all_burst_starts(idx,3) - all_burst_starts(i,1));
+end
 
-% 		if i == 1
-% 			% PD neuron
+C = C + level_cost*bin_cost(Delay_PD_PY_range, nanmean(all_delays));
 
-% 			% measure PD neuron duration (1st spike -- last spike)
-% 			C =  C + basin_cost(PD_burst_duration_range,this_duration);
-% 		end
 
-% 		if i == 2
-% 			% LP neuron
 
-% 			% measure LP neuron duration (1st spike -- last spike)
-% 			C =  C + basin_cost(LP_burst_duration_range,this_duration);
-% 		end
 
-% 		if i == 3
-% 			% PY neuron
-
-% 			% measure PY neuron duration (1st spike -- last spike)
-% 			C =  C + basin_cost(PY_burst_duration_range,this_duration);
-% 		end
-
-% 	end  % end neuron-specific loop
-
-% 	PD_ends = metrics(1).last_spike_loc;
-% 	rm_this = PD_ends == 0;
-% 	PD_ends = metrics(1).Ca_peaks(:) + PD_ends(:);
-% 	PD_ends(rm_this) = [];
-
-% 	PD_starts = metrics(1).first_spike_loc;
-% 	rm_this = PD_starts == 0;
-% 	PD_starts = metrics(1).Ca_peaks(:) + PD_starts(:);
-% 	PD_starts(rm_this) = [];
-
-
-% 	LP_starts = metrics(2).first_spike_loc;
-% 	rm_this = LP_starts == 0;
-% 	LP_starts = metrics(2).Ca_peaks(:) + LP_starts(:);
-% 	LP_starts(rm_this) = [];
-
-% 	LP_ends = metrics(2).last_spike_loc;
-% 	rm_this = LP_ends == 0;
-% 	LP_ends = metrics(2).Ca_peaks(:) + LP_ends(:);
-% 	LP_ends(rm_this) = [];
-
-
-% 	PY_starts = metrics(3).first_spike_loc;
-% 	rm_this = PY_starts == 0;
-% 	PY_starts = metrics(3).Ca_peaks(:) + PY_starts(:);
-% 	PY_starts(rm_this) = [];
-
-% 	PY_ends = metrics(3).last_spike_loc;
-% 	rm_this = PY_ends == 0;
-% 	PY_ends = metrics(3).Ca_peaks(:) + PY_ends(:);
-% 	PY_ends(rm_this) = [];
-
-% catch
-% 	C = fail_cost;
-% 	return
-% end
-
-
-% if nargout == 0
-% 	% mark the burst ends and starts
-% 	plot(ax(1),[PD_starts PD_starts],[-80 60],'g','LineWidth',3)
-% 	plot(ax(1),[PD_ends PD_ends],[-80 60],'r','LineWidth',3)
-
-% 	plot(ax(2),[LP_starts LP_starts],[-80 60],'g','LineWidth',3)
-% 	plot(ax(2),[LP_ends LP_ends],[-80 60],'r','LineWidth',3)
-
-% 	plot(ax(3),[PY_starts PY_starts],[-80 60],'g','LineWidth',3)
-% 	plot(ax(3),[PY_ends PY_ends],[-80 60],'r','LineWidth',3)
-% end
-
-% try
-
-% % measure gaps from PD to LP ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-% all_gaps = NaN*PD_ends;
-
-% for i = 2:length(all_gaps)-1
-% 	[~,idx] = min(abs(PD_ends(i) - LP_starts));
-% 	all_gaps(i) = (LP_starts(idx) - PD_ends(i))*1e-3;
-% end
-
-% C = C + basin_cost(Gap_PD_LP_range, nanmean(all_gaps));
-
-% % measure gaps from LP to PY ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-% all_gaps = NaN*LP_ends;
-
-% for i = 2:length(all_gaps)-1
-% 	[~,idx] = min(abs(LP_ends(i) - PY_starts));
-% 	all_gaps(i) = (PY_starts(idx) - LP_ends(i))*1e-3;
-% end
-
-% C = C + basin_cost(Gap_LP_PY_range, nanmean(all_gaps));
-
-% ;;;;;;;;  ;;;;;;;; ;;          ;;;    ;;    ;;  ;;;;;;  
-% ;;     ;; ;;       ;;         ;; ;;    ;;  ;;  ;;    ;; 
-% ;;     ;; ;;       ;;        ;;   ;;    ;;;;   ;;       
-% ;;     ;; ;;;;;;   ;;       ;;     ;;    ;;     ;;;;;;  
-% ;;     ;; ;;       ;;       ;;;;;;;;;    ;;          ;; 
-% ;;     ;; ;;       ;;       ;;     ;;    ;;    ;;    ;; 
-% ;;;;;;;;  ;;;;;;;; ;;;;;;;; ;;     ;;    ;;     ;;;;;;  
-
-% % measure delay from PD -> LP ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-% all_delays = NaN*PD_starts;
-
-% for i = 2:length(all_delays)-1
-% 	[~,idx] = min(abs(PD_starts(i) - LP_starts));
-% 	all_delays(i) = (LP_starts(idx) - PD_starts(i))*1e-3;
-% end
-
-% C = C + basin_cost(Delay_PD_LP_range, nanmean(all_delays));
-
-% % measure delay from PD -> PY ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-% all_delays = NaN*PD_starts;
-
-% for i = 2:length(all_delays)-1
-% 	[~,idx] = min(abs(PD_starts(i) - PY_starts));
-% 	all_delays(i) = (PY_starts(idx) - PD_starts(i))*1e-3;
-% end
-
-% C = C + basin_cost(Delay_PD_PY_range, nanmean(all_delays));
-
-
-% ;;;;;;;;  ;;     ;; ;;;;;;;; ;;    ;; 
-% ;;     ;; ;;     ;;    ;;     ;;  ;;  
-% ;;     ;; ;;     ;;    ;;      ;;;;   
-% ;;     ;; ;;     ;;    ;;       ;;    
-% ;;     ;; ;;     ;;    ;;       ;;    
-% ;;     ;; ;;     ;;    ;;       ;;    
-% ;;;;;;;;   ;;;;;;;     ;;       ;;    
-
-%  ;;;;;;  ;;    ;;  ;;;;;;  ;;       ;;;;;;;; 
-% ;;    ;;  ;;  ;;  ;;    ;; ;;       ;;       
-% ;;         ;;;;   ;;       ;;       ;;       
-% ;;          ;;    ;;       ;;       ;;;;;;   
-% ;;          ;;    ;;       ;;       ;;       
-% ;;    ;;    ;;    ;;    ;; ;;       ;;       
-%  ;;;;;;     ;;     ;;;;;;  ;;;;;;;; ;;;;;;;; 
-
-% C = C + basin_cost(PD_duty_cycle_range,metrics(1).burst_metrics(9));
-% C = C + basin_cost(LP_duty_cycle_range,metrics(2).burst_metrics(9));
-% C = C + basin_cost(PY_duty_cycle_range,metrics(3).burst_metrics(9));
-
-
-% % penalize depolarization block in LP
-
-% for i = 1:length(LP_starts)
-% 	these_spikes = metrics(2).spike_times(metrics(2).spike_times >= LP_starts(i) & (metrics(2).spike_times <= LP_ends(i)));
-
-% 	allowed_isi_range = [0 3*(these_spikes(end) - these_spikes(1))/length(these_spikes)];
-
-% 	C = C + basin_cost(allowed_isi_range,max(diff(these_spikes)));
-
-% end
-
-% % In PD
-% for i = 1:length(PD_starts)
-% 	these_spikes = metrics(2).spike_times(metrics(2).spike_times >= PD_starts(i) & (metrics(2).spike_times <= PD_ends(i)));
-
-% 	allowed_isi_range = [0 3*(these_spikes(end) - these_spikes(1))/length(these_spikes)];
-
-% 	C = C + basin_cost(allowed_isi_range,max(diff(these_spikes)));
-
-% end
-
-
-
-
-% catch
-
-% 	C = fail_cost;
-% 	return
-% end
 
 
 function c = bin_cost(allowed_range,actual_value)
@@ -611,22 +429,5 @@ function c = bin_cost(allowed_range,actual_value)
 	end
 
 end
-
-
-% function c = basin_cost(allowed_range, actual_value)
-
-% 	c = 0;
-% 	if actual_value < allowed_range(1)
-% 		c = (allowed_range(2) - actual_value)^2/(allowed_range(2) - allowed_range(1));
-% 		return
-% 	elseif  actual_value > allowed_range(2)
-% 		c = (allowed_range(2) - actual_value)^2/(allowed_range(2) - allowed_range(1));
-% 		return
-% 	else
-% 		return 
-% 	end
-
-
-% end % end basin_cost
 
 end % end function 
