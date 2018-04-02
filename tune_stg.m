@@ -1,5 +1,5 @@
 
-make_stg
+make_stg;
 p = procrustes('particleswarm');
 p.x = x;
 

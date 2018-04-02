@@ -2,8 +2,27 @@
 % that are within the experimental range 
 % that is observed for STG networks
 % in a number of parameters as defined in Prinz et al 2004
+% 
+% this cost function is meant to be run by procrustes
+% and can typically find pyloric-like networks in < 60 seconds
+% on a reasonable computer, starting from random initial conditions
+%
+% usage:
+% see tune_stg.m
+%
+% 
 
-function [C, cost_vector] = STG_cost_function(x)
+function [C, cost_vector, metrics_vector] = STG_cost_function(x)
+
+
+metrics_vector = NaN(18,1);
+% this stores:
+% duration (1-3)
+% # spikes/burst (4-6)
+% burst period (7-9)
+% duty cycle (10-12)
+% Gaps (13: PD->LP, 14: LP->PY, 15: PY-> PD)
+% Delays (16: <unused>, 17: PD->LP, 18: PD->PY)
 
 % first, make the default cost_vector
 cost_vector = zeros(6,3);
@@ -114,6 +133,7 @@ if nargout == 0
 		ax(i) = subplot(3,1,i); hold on
 		plot(time,V(:,i),'k')
 	end
+	linkaxes(ax,'x')
 end
 
 C = sum(cost_vector(:));
@@ -235,6 +255,10 @@ for i = 1:3
 			continue
 		end
 	end
+
+	% save n_spikes_in_burst in metrics
+	metrics_vector(i+3) = nanmean(n_spikes_in_burst(:,i));
+
 end
 
 % penalize things that are outside the allowed
@@ -335,6 +359,9 @@ for i = 3:-1:1
 	all_periods(i) = mean(diff(nonnans(Ca_min_times(:,i))));
 end
 
+% save this
+metrics_vector(7:9) = all_periods;
+
 % penalize them based on how far they are from the 
 % experimental range 
 
@@ -349,6 +376,8 @@ cost_vector(4,:) = cost_vector(4,:) + sync_cost;
 % durations 
 for i = 1:3
 	cost_vector(4,i) = cost_vector(4,i) + level_cost*bin_cost(burst_duration_range(:,i),nanmean(all_durations(:,i)));
+	% also save this metrics
+	metrics_vector(i) = nanmean(all_durations(:,i));
 end
 
 
@@ -358,56 +387,96 @@ for i = 1:3
 	cost_vector(4,i) = cost_vector(4,i) + level_cost*bin_cost(duty_cycle_range(:,i),all_duty_cycle(i));
 end
 
+% save this
+metrics_vector(10:12) = all_duty_cycle;
+
 
 C = sum(cost_vector(:));
 
 % measure gaps from PD to LP ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 all_gaps = NaN*nonnans(all_burst_ends(:,1));
-
 for i = 2:length(all_gaps)-1
+	% Gap can be negative
 	[~,idx] = min(abs(all_burst_ends(i,1) - all_burst_starts(:,2)));
 	all_gaps(i) = (all_burst_starts(idx,2) - all_burst_ends(i,1));
 end
+this_cost = level_cost*bin_cost(Gap_PD_LP_range, nanmean(all_gaps));
+if nargout  == 0
+	disp(['Cost for gap from PD -> LP: ' oval(this_cost)])
+end
+C = C + this_cost;
 
-C = C + level_cost*bin_cost(Gap_PD_LP_range, nanmean(all_gaps));
+% save it
+metrics_vector(13) = nanmean(all_gaps);
 
 % measure gaps from LP to PY ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 all_gaps = NaN*nonnans(all_burst_ends(:,2));
-
 for i = 2:length(all_gaps)-1
+	% Gap can be negative
 	[~,idx] = min(abs(all_burst_ends(i,2) - all_burst_starts(:,3)));
 	all_gaps(i) = (all_burst_starts(idx,3) - all_burst_ends(i,2));
 end
+this_cost = level_cost*bin_cost(Gap_PD_LP_range, nanmean(all_gaps));
+if nargout  == 0
+	disp(['Cost for gap from LP -> PY: ' oval(this_cost)])
+end
+C = C + this_cost;
 
-C = C + level_cost*bin_cost(Gap_PD_LP_range, nanmean(all_gaps));
+% save it
+metrics_vector(14) = nanmean(all_gaps);
 
+% for fun, let's also measure the gap from PY to PD
+% but don't add this to the cost because we don't
+% have experimental data on this
+all_gaps = NaN*nonnans(all_burst_ends(:,3));
+for i = 2:length(all_gaps)-1
+	% Gap can be negative
+	[~,idx] = min(abs(all_burst_ends(i,3) - all_burst_starts(:,1)));
+	all_gaps(i) = (all_burst_starts(idx,1) - all_burst_ends(i,3));
+end
+
+% save it
+metrics_vector(15) = nanmean(all_gaps);
 
 % now measure delays
+% delay from PD -> LP
 
 all_delays = NaN*nonnans(all_burst_starts(:,1));
 
 for i = 2:length(all_delays)-1
-	[~,idx] = min(abs(all_burst_starts(i,1) - all_burst_starts(:,2)));
+	% find the first LP onset after this PD onset
+	idx = find(all_burst_starts(:,2) > all_burst_starts(i,1),1,'first');
 	all_delays(i) = (all_burst_starts(idx,2) - all_burst_starts(i,1));
 end
 
-C = C + level_cost*bin_cost(Delay_PD_LP_range, nanmean(all_delays));
+this_cost = level_cost*bin_cost(Delay_PD_LP_range, nanmean(all_delays));
+if nargout  == 0
+	disp(['Cost for delay from PD -> LP: ' oval(this_cost)])
+end
+C = C + this_cost;
+
+% save it
+metrics_vector(17) = nanmean(all_delays);
 
 % measure delay from PD -> PY ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 all_delays = NaN*nonnans(all_burst_starts(:,1));
 
 for i = 2:length(all_delays)-1
-	[~,idx] = min(abs(all_burst_starts(i,1) - all_burst_starts(:,3)));
+	% find the first PY onset after this PD onset
+	idx = find(all_burst_starts(:,3) > all_burst_starts(i,1),1,'first');
 	all_delays(i) = (all_burst_starts(idx,3) - all_burst_starts(i,1));
 end
+this_cost = level_cost*bin_cost(Delay_PD_PY_range, nanmean(all_delays));
+if nargout  == 0
+	disp(['Cost for delay from PD -> PY: ' oval(this_cost)])
+end
+C = C + this_cost;
 
-C = C + level_cost*bin_cost(Delay_PD_PY_range, nanmean(all_delays));
-
-
-
+% save it
+metrics_vector(18) = nanmean(all_delays);
 
 
 
