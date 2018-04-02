@@ -434,7 +434,9 @@ all_gaps = NaN*nonnans(all_burst_ends(:,3));
 for i = 2:length(all_gaps)-1
 	% Gap can be negative
 	[~,idx] = min(abs(all_burst_ends(i,3) - all_burst_starts(:,1)));
-	all_gaps(i) = (all_burst_starts(idx,1) - all_burst_ends(i,3));
+	if ~isempty(idx)
+		all_gaps(i) = (all_burst_starts(idx,1) - all_burst_ends(i,3));
+	end
 end
 
 % save it
@@ -448,7 +450,9 @@ all_delays = NaN*nonnans(all_burst_starts(:,1));
 for i = 2:length(all_delays)-1
 	% find the first LP onset after this PD onset
 	idx = find(all_burst_starts(:,2) > all_burst_starts(i,1),1,'first');
-	all_delays(i) = (all_burst_starts(idx,2) - all_burst_starts(i,1));
+	if ~isempty(idx)
+		all_delays(i) = (all_burst_starts(idx,2) - all_burst_starts(i,1));
+	end
 end
 
 this_cost = level_cost*bin_cost(Delay_PD_LP_range, nanmean(all_delays));
@@ -467,7 +471,9 @@ all_delays = NaN*nonnans(all_burst_starts(:,1));
 for i = 2:length(all_delays)-1
 	% find the first PY onset after this PD onset
 	idx = find(all_burst_starts(:,3) > all_burst_starts(i,1),1,'first');
-	all_delays(i) = (all_burst_starts(idx,3) - all_burst_starts(i,1));
+	if ~isempty(idx)
+		all_delays(i) = (all_burst_starts(idx,3) - all_burst_starts(i,1));
+	end
 end
 this_cost = level_cost*bin_cost(Delay_PD_PY_range, nanmean(all_delays));
 if nargout  == 0

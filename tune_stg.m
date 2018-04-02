@@ -26,3 +26,42 @@ p.ub = ub;
 
 p.sim_func = @STG_cost_function;
 
+
+N = 1e3;
+n_epochs = 3;
+all_g = NaN(28,N);
+all_metrics = NaN(18,N);
+all_cost = NaN(N,1);
+
+file_name = ['reprinz_' getComputerName '.mat'];
+
+if exist(file_name)
+	load(file_name)
+end
+
+p.options.MaxTime = 300;
+
+for i = 1:N
+
+	try
+		p.seed = rand(28,1).*ub;
+		for j = 1:n_epochs
+			p.fit;
+		end
+
+		% save
+		x.set(x.find('*gbar'),p.seed);	
+		[all_cost(i),~,all_metrics(:,i)] = p.sim_func(x);
+
+		all_g(:,i) = p.seed;
+		 
+
+		save(file_name,'all_g','all_metrics','all_cost')
+
+	catch
+		disp('Something went wrong. Ouch. ')
+	end
+
+
+
+end
