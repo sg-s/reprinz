@@ -37,12 +37,16 @@ file_name = ['reprinz_' getComputerName '.mat'];
 
 if exist(file_name)
 	load(file_name)
+	start_idx = find(isnan(all_cost),1,'first');
+else
+	start_idx = 1;
 end
 
 p.options.MaxTime = 300;
+p.options.Display = 'none';
 
-for i = 1:N
-
+for i = start_idx:N
+	disp(['Starting with random seed #' oval(i)])
 	try
 		p.seed = rand(28,1).*ub;
 		for j = 1:n_epochs
@@ -52,6 +56,9 @@ for i = 1:N
 		% save
 		x.set(x.find('*gbar'),p.seed);	
 		[all_cost(i),~,all_metrics(:,i)] = p.sim_func(x);
+
+
+		disp(['Final Cost for this seed is ' oval(all_cost(i))])
 
 		all_g(:,i) = p.seed;
 		 
