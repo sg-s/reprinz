@@ -4,7 +4,7 @@
 % however, the gbars in the 2nd compartment are nailed
 % to the gbars in the first compartment
 
-function [C, cost_vector, metrics_vector] = two_comp_cost_func(x)
+function [C, cost_vector] = two_comp_cost_func(x)
 
 
 
