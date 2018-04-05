@@ -151,7 +151,7 @@ end
 ;;;;;;;; ;;;;;;;;    ;;;    ;;;;;;;; ;;;;;;;;    ;;;;;;;;; 
 
 level_cost = 1e4;
-cost_vector(2,i) = 0;
+cost_vector(2,:) = 0;
 
 % ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 % cell is bursting, with an OK # of spikes/burst

@@ -1,5 +1,6 @@
 
-make_stg;
+clear all
+x = make2C;
 p = procrustes('particleswarm');
 p.x = x;
 
@@ -43,7 +44,7 @@ else
 end
 
 p.options.MaxTime = 300;
-p.options.Display = 'none';
+p.options.Display = 'iter';
 
 for i = start_idx:N
 	disp(['Starting with random seed #' oval(i)])

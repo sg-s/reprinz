@@ -1,7 +1,10 @@
 make_stg
-show_these = find(all_cost == 0);
+show_these = shuffle(find(~isnan(all_cost)));
 
 for i = 1:length(show_these)
+
+	pause(3)
+	close all
 
 	x.set(x.find('*gbar'),all_g(:,show_these(i)));	
 	STG_cost_function(x)
@@ -9,7 +12,6 @@ for i = 1:length(show_these)
 	drawnow
 	close(gcf)
 
-	pause(3)
-	close all
+	
 
 end
