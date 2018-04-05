@@ -4,28 +4,22 @@ x = make2C;
 p = procrustes('particleswarm');
 p.x = x;
 
-p.parameter_names = x.find('*gbar');
+p.parameter_names = x.find('Neurite*gbar');
 
-seed = x.get(x.find('*gbar'));
-ub = 0*seed;
-lb = 0*seed;
+seed = x.get(p.parameter_names);
+
 
 % neuron conductances
-ub(1:21) = repmat([500; 100; 100; .5; 100; 1250; 2000],3,1);
-lb(1:21) = 1e-2;
-
-% synapses
-ub(22:28) = 100; % nS
-lb(22:28) = 0; % nS
+ub = [500; 100; 100; .5; 100; 1250; 2000];
+lb = ub*0 + 1e-2;
 
 
-
-p.seed = rand(28,1).*ub; % random seed
-x.set(x.find('*gbar'),p.seed);
+p.seed = rand(length(p.parameter_names),1).*ub; % random seed
+x.set(p.parameter_names,p.seed);
 p.lb = lb;
 p.ub = ub;
 
-p.sim_func = @STG_cost_function;
+p.sim_func = @two_comp_cost_func;
 
 
 N = 1e3;
@@ -34,7 +28,7 @@ all_g = NaN(28,N);
 all_metrics = NaN(18,N);
 all_cost = NaN(N,1);
 
-file_name = ['reprinz_' getComputerName '.mat'];
+file_name = ['reprinz_2c_' getComputerName '.mat'];
 
 if exist(file_name)
 	load(file_name)

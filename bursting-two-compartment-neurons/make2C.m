@@ -14,9 +14,9 @@ phi = (2*f*F*vol)/tau_Ca;
 
 x = xolotl;
 x.cleanup;
-x.add('Soma','compartment','Cm',10,'A',A,'vol',vol,'phi',phi,'Ca_out',3000,'Ca_in',0.05,'tau_Ca',tau_Ca,'Ca_target',Ca_target);
+x.add('Soma','compartment','Cm',10,'A',A,'vol',vol,'phi',phi,'Ca_out',3000,'Ca_in',0.05,'tau_Ca',tau_Ca);
 
-x.add('Neurite','compartment','Cm',10,'A',A/10,'vol',vol/10,'phi',phi,'Ca_out',3000,'Ca_in',0.05,'tau_Ca',tau_Ca,'Ca_target',Ca_target);
+x.add('Neurite','compartment','Cm',10,'A',A/10,'vol',vol/10,'phi',phi,'Ca_out',3000,'Ca_in',0.05,'tau_Ca',tau_Ca);
 
 x.connect('Neurite','Soma',g_axial);
 
@@ -40,6 +40,8 @@ x.Neurite.add('prinz-approx/KCa','gbar',g0(5),'E',-80);
 x.Neurite.add('prinz-approx/Kd','gbar',g0(6),'E',-80);
 x.Neurite.add('prinz-approx/HCurrent','gbar',g0(7),'E',-20);
 % x.Neurite.add('Leak','gbar',.099,'E',-50);
+
+x.t_end = 20e3;
 
 x.transpile;
 x.compile;
