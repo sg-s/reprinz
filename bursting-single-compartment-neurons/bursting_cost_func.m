@@ -1,10 +1,14 @@
-% modification of STG_cost_function
-% that is meant to find bursting neurons
-% one at a time
+% this cost function is meant to run on two compartment models
+% and basically ignores the 2nd compartment, and optimizes
+% the 1st compartment's behvior.
+% however, the gbars in the 2nd compartment are nailed
+% to the gbars in the first compartment
 
-function [C, cost_vector, metrics_vector] = bursting_neuron(x)
+function [C, cost_vector] = two_comp_cost_func(x, show_soma, ax)
 
-
+if nargin < 2
+	show_soma = false;
+end
 
 % first, make the default cost_vector
 cost_vector = zeros(4,1);
@@ -82,8 +86,21 @@ spike_times = spike_times*x.dt*1e-3;
 time = (1:length(V))*x.dt*1e-3;
 
 if nargout == 0
-	figure('outerposition',[300 300 1200 300],'PaperUnits','points','PaperSize',[1200 900]); hold on
-	plot(time,V,'k')
+	if nargin < 3
+		figure('outerposition',[300 300 1200 500],'PaperUnits','points','PaperSize',[1200 900]); hold on
+		ax = gca;
+	end
+	if show_soma
+		x.Soma.NaV.gbar = 0;
+		V_soma = x.integrate;
+		V_soma = V_soma(cutoff:end,2); % discard 2nd compartment
+		time_soma = (1:length(V_soma))*x.dt*1e-3;
+		plot(ax,time_soma,V_soma,'k')
+		set(ax,'XLim',[0 5])
+		return
+	else
+		plot(time,V,'k')
+	end
 end
 
 C = sum(cost_vector(:));
@@ -105,7 +122,6 @@ end
 ;;;;;;;; ;;;;;;;;    ;;;    ;;;;;;;; ;;;;;;;;    ;;;;;;;;; 
 
 level_cost = 1e4;
-cost_vector(2) = 0;
 
 % ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 % cell is bursting, with an OK # of spikes/burst

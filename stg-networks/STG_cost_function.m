@@ -132,17 +132,9 @@ if nargout == 0
 	for i = 3:-1:1
 		ax(i) = subplot(3,1,i); hold on
 		plot(time,V(:,i),'k')
-		set(ax(i),'XLim',[0 5])
 	end
-	ylabel(ax(1),'V_{PD} (mV)')
-	ylabel(ax(2),'V_{LP} (mV)')
-	ylabel(ax(3),'V_{PY} (mV)')
 	linkaxes(ax,'x')
-	xlabel(ax(3),'Time (s)')
 end
-
-prettyFig('plw',1);
-
 
 C = sum(cost_vector(:));
 if any(cost_vector(1,:) > 1)
@@ -426,7 +418,7 @@ for i = 2:length(all_gaps)-1
 	[~,idx] = min(abs(all_burst_ends(i,2) - all_burst_starts(:,3)));
 	all_gaps(i) = (all_burst_starts(idx,3) - all_burst_ends(i,2));
 end
-this_cost = level_cost*bin_cost(Gap_LP_PY_range, nanmean(all_gaps));
+this_cost = level_cost*bin_cost(Gap_PD_LP_range, nanmean(all_gaps));
 if nargout  == 0
 	disp(['Cost for gap from LP -> PY: ' oval(this_cost)])
 end

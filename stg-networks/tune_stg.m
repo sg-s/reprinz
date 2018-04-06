@@ -43,7 +43,7 @@ else
 end
 
 p.options.MaxTime = 300;
-p.options.Display = 'iter';
+p.options.Display = 'none';
 
 for i = start_idx:N
 	disp(['Starting with random seed #' oval(i)])

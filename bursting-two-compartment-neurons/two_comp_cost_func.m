@@ -4,9 +4,11 @@
 % however, the gbars in the 2nd compartment are nailed
 % to the gbars in the first compartment
 
-function [C, cost_vector] = two_comp_cost_func(x)
+function [C, cost_vector] = two_comp_cost_func(x, show_soma, ax)
 
-
+if nargin < 2
+	show_soma = false;
+end
 
 % first, make the default cost_vector
 cost_vector = zeros(4,1);
@@ -54,7 +56,7 @@ x.set(x.find('Soma*gbar'),gbar_in_neurite);
 
 [V,Ca] = x.integrate;
 cutoff = floor(10e3/x.dt);
-V = V(cutoff:end,1); % discard 2nd compartment
+V_soma = V(cutoff:end,2); 
 Ca = Ca(cutoff:end,:);
 Ca = Ca(:,1);
 
@@ -88,8 +90,21 @@ spike_times = spike_times*x.dt*1e-3;
 time = (1:length(V))*x.dt*1e-3;
 
 if nargout == 0
-	figure('outerposition',[300 300 1200 300],'PaperUnits','points','PaperSize',[1200 900]); hold on
-	plot(time,V,'k')
+	if nargin < 3
+		figure('outerposition',[300 300 1200 500],'PaperUnits','points','PaperSize',[1200 900]); hold on
+		ax = gca;
+	end
+	if show_soma
+		x.Soma.NaV.gbar = 0;
+		V_soma = x.integrate;
+		V_soma = V_soma(cutoff:end,2); % discard 2nd compartment
+		time_soma = (1:length(V_soma))*x.dt*1e-3;
+		plot(ax,time_soma,V_soma,'k')
+		set(ax,'XLim',[0 5])
+		return
+	else
+		plot(time,V,'k')
+	end
 end
 
 C = sum(cost_vector(:));
