@@ -1,5 +1,5 @@
 make_stg
-show_these = find(all_cost == 0);
+show_these = shuffle(find(all_cost == 0 ));
 
 for i = 1:length(show_these)
 

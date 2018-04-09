@@ -11,7 +11,8 @@ seed = x.get(p.parameter_names);
 
 
 % neuron conductances
-ub = [500; 100; 100; .5; 100; 1250; 2000];
+experimental_range = [500; 100; 100; .5; 100; 1250; 2000];
+ub = [1e3 1e3 200 10 1e3 2e3 2e3];
 lb = ub*0 + 1e-2;
 
 
@@ -23,7 +24,7 @@ p.ub = ub;
 p.sim_func = @bursting_cost_func;
 
 
-N = 1e3;
+N = 1e4;
 n_epochs = 1;
 all_g = NaN(M,N);
 all_cost = NaN(N,1);
@@ -40,12 +41,11 @@ end
 p.options.MaxTime = 300;
 p.options.Display = 'iter';
 
-return
 
 for i = start_idx:N
 	disp(['Starting with random seed #' oval(i)])
 	try
-		p.seed = rand(M,1).*ub; % random seed
+		p.seed = rand(M,1).*experimental_range; % random seed
 		for j = 1:n_epochs
 			p.fit;
 		end

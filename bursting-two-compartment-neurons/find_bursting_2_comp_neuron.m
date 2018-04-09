@@ -20,7 +20,7 @@ x.set(p.parameter_names,p.seed);
 p.lb = lb;
 p.ub = ub;
 
-p.sim_func = @two_comp_cost_func;
+p.sim_func = @two_comp_spike_height;
 
 
 N = 1e3;
@@ -28,7 +28,7 @@ n_epochs = 1;
 all_g = NaN(M,N);
 all_cost = NaN(N,1);
 
-file_name = ['reprinz_2c_' getComputerName '.mat'];
+file_name = ['reprinz_2c_spikes_in_soma_' getComputerName '.mat'];
 
 if exist(file_name)
 	load(file_name)
@@ -39,6 +39,7 @@ end
 
 p.options.MaxTime = 300;
 p.options.Display = 'iter';
+
 
 for i = start_idx:N
 	disp(['Starting with random seed #' oval(i)])

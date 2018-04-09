@@ -1,35 +1,13 @@
-x = make2C;
-show_these = shuffle(find(all_cost == 0));
+% show the distributions of gbars
 
-for i = 1:length(show_these)
+x = make_neuron;
 
-	pause(2)
+figure('outerposition',[0 0 1000 500],'PaperUnits','points','PaperSize',[1000 500]); hold on
 
-	x.set(x.find('Neurite*gbar'),all_g(:,show_these(i)));	
-	two_comp_cost_func(x,true)
+channels = x.AB.find('conductance');
 
-	title(show_these(i))
-
-	drawnow
-	
-
+for i = 1:7
+	subplot(2,4,i); hold on
+	hist(all_g(i,:),100)
+	title(channels{i})
 end
-
-% show nice ones
-show_these = [175 537 42 592 491 736 934 410 407 914];
-
-figure('outerposition',[0 0 800 900],'PaperUnits','points','PaperSize',[1000 500]); hold on
-for i = 1:10
-	ax(i) = subplot(5,2,i); hold on
-	
-	ylabel(ax(i),'V_m (mV)')
-end
-
-for i = 1:10
-	x.set(x.find('Neurite*gbar'),all_g(:,show_these(i)));	
-	two_comp_cost_func(x,true,ax(i));
-	set(ax(i),'YLim',[-80 -10],'XLim',[0 3])
-end
-
-prettyFig('plw',1);
-

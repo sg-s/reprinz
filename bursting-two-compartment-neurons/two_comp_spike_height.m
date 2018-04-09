@@ -35,6 +35,8 @@ burst_duration_range = [0.4490  0.7150]; % PD, sec
 duty_cycle_range = [.3450 .4250];
 
 
+spike_height_in_soma_range = [8 15];
+
 ;;       ;;;;;;;; ;;     ;; ;;;;;;;; ;;             ;;   
 ;;       ;;       ;;     ;; ;;       ;;           ;;;;   
 ;;       ;;       ;;     ;; ;;       ;;             ;;   
@@ -50,11 +52,11 @@ level_cost = 1e5;
 % only when we think we are being optimized
 
 channels = x.Soma.find('conductance');
-if nargout < 3
-	for i = 1:length(channels)
-		x.Soma.(channels{i}).gbar = x.Neurite.(channels{i}).gbar;
-	end
+
+for i = 1:length(channels)
+	x.Soma.(channels{i}).gbar = x.Neurite.(channels{i}).gbar;
 end
+x.Soma.NaV.gbar = 0;
 
 
 [V,Ca] = x.integrate;
@@ -343,13 +345,6 @@ cost_vector(4) = cost_vector(4) + level_cost*bin_cost(duty_cycle_range,all_duty_
 
 C = sum(cost_vector(:));
 
-% if asked for, measure spike heights in soma
-if nargout < 3
-	return
-end
-
-% figure('outerposition',[0 0 1000 500],'PaperUnits','points','PaperSize',[1000 500]); hold on
-% plot(time,V_soma); hold on
 
 spike_times = round((1/(x.dt*1e-3))*nonnans(spike_times));
 all_burst_starts = round((1/(x.dt*1e-3))*nonnans(all_burst_starts));
@@ -381,11 +376,10 @@ for i = 1:n_bursts
 end
 
 V_soma_spikes = nonnans(V_soma_spikes);
-
-% plot(time(V_soma_spikes),V_soma(V_soma_spikes),'ro')
-% set(gca,'XLim',[0 3])
-
 spike_height_in_soma = nanmean(V_soma_spikes_amp);
+
+C = C + bin_cost(spike_height_in_soma_range,spike_height_in_soma);
+
 
 function c = bin_cost(allowed_range,actual_value)
 
