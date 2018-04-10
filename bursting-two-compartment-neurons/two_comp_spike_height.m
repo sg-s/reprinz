@@ -28,7 +28,7 @@ spike_height_in_soma = NaN;
 
 
 CV_Ca_peak_period_range = [0 .1];
-n_spikes_per_burst_range = [4 30];
+n_spikes_per_burst_range = [4 20];
 max_min_V_within_burst = -40; 
 cycle_period_range = [1.23 1.788]; % mean +/- 1 SD
 burst_duration_range = [0.4490  0.7150]; % PD, sec
@@ -131,8 +131,6 @@ level_cost = 1e4;
 
 cost_vector(2) = bin_cost([0,.1],min(Ca)/max(Ca))*level_cost/3;
 
-
-
 % early exit
 if cost_vector(2) > 1
 
@@ -215,7 +213,6 @@ n_spikes_in_burst = NaN(100,1);
 all_burst_starts = NaN(100,1);
 all_burst_ends = NaN(100,1);
 
-% check for depolarization block
 
 n_bursts = sum(~isnan(Ca_min_times));
 for j = 1:n_bursts-1
@@ -238,10 +235,10 @@ for j = 1:n_bursts-1
 	end
 end
 
+n_bursts = sum(~isnan(n_spikes_in_burst));
+
 % penalize things that are outside the allowed
 % # of spikes/burst
-
-
 this_n_spikes = nonnans(n_spikes_in_burst);
 frac_cost = (level_cost/3)/length(this_n_spikes);
 for j = 1:length(this_n_spikes)
@@ -252,6 +249,45 @@ for j = 1:length(this_n_spikes)
 end
 
 
+
+% check for big spikes in soma
+spike_times_idx = round((1/(x.dt*1e-3))*nonnans(spike_times));
+all_burst_starts_idx = round((1/(x.dt*1e-3))*nonnans(all_burst_starts));
+all_burst_ends_idx = round((1/(x.dt*1e-3))*nonnans(all_burst_ends));
+
+V_soma_spikes = NaN*spike_times_idx;
+V_soma_spikes_amp = NaN*spike_times_idx;
+c = 1;
+cc = 1;
+
+% find the actual spikes in V_soma
+try
+	for i = 1:n_bursts
+		spikes_in_this_burst = spike_times_idx(all_burst_starts_idx(i) <= spike_times_idx & all_burst_ends_idx(i) >= spike_times_idx);
+		for j = 2:length(spikes_in_this_burst)-1
+			% find the max b/w this idx and the next one
+			[~,idx] = max(V_soma(spikes_in_this_burst(j):spikes_in_this_burst(j+1)));
+			V_soma_spikes(c) = spikes_in_this_burst(j) + idx;
+			c = c + 1;
+		end
+
+		% now measure spike amplitudes
+		spikes_in_this_burst = V_soma_spikes(all_burst_starts_idx(i) <= V_soma_spikes & all_burst_ends_idx(i) >= V_soma_spikes);
+		for j = 1:length(spikes_in_this_burst)-1
+			% find the max b/w this idx and the next one
+			min_V = min(V_soma(spikes_in_this_burst(j):spikes_in_this_burst(j+1)));
+			V_soma_spikes_amp(cc) = V_soma(spikes_in_this_burst(j)) -min_V;
+			cc = cc + 1;
+		end
+	end
+
+	V_soma_spikes = nonnans(V_soma_spikes);
+	spike_height_in_soma = nanmean(V_soma_spikes_amp);
+
+	cost_vector(2) = cost_vector(2) + level_cost*bin_cost(spike_height_in_soma_range,spike_height_in_soma);
+catch
+	cost_vector(2) = cost_vector(2) + level_cost;
+end
 
 C = sum(cost_vector(:));
 
@@ -276,7 +312,6 @@ cost_vector(3,:) = 0;
 
 % check 1/2: measure V inbetween spikes
 
-n_bursts = sum(~isnan(n_spikes_in_burst));
 frac_cost = (level_cost/2)/n_bursts;
 for j = 1:n_bursts
 	spikes_in_this_burst = spike_times(all_burst_starts(j) <= spike_times & all_burst_ends(j) >= spike_times);
@@ -290,20 +325,15 @@ end
 
 
 % check 2/2 ISIs during bursts
-
-n_bursts = sum(~isnan(n_spikes_in_burst));
 frac_cost = (level_cost/2)/n_bursts;
 for j = 1:n_bursts
 	spikes_in_this_burst = spike_times(all_burst_starts(j) <= spike_times & all_burst_ends(j) >= spike_times);
 	isis_in_this_burst = diff(spikes_in_this_burst);
 
-
-
 	isi_ratio = max(isis_in_this_burst)/mean(setdiff(isis_in_this_burst,max(isis_in_this_burst)));
 	cost_vector(3) = cost_vector(3) + bin_cost([0 5],isi_ratio)*frac_cost;
 
 end
-
 
 C = sum(cost_vector(:));
 
@@ -344,41 +374,6 @@ all_duty_cycle = nanmean(all_durations)./all_periods;
 cost_vector(4) = cost_vector(4) + level_cost*bin_cost(duty_cycle_range,all_duty_cycle);
 
 C = sum(cost_vector(:));
-
-
-spike_times = round((1/(x.dt*1e-3))*nonnans(spike_times));
-all_burst_starts = round((1/(x.dt*1e-3))*nonnans(all_burst_starts));
-all_burst_ends = round((1/(x.dt*1e-3))*nonnans(all_burst_ends));
-
-V_soma_spikes = NaN*spike_times;
-V_soma_spikes_amp = NaN*spike_times;
-c = 1;
-cc = 1;
-
-% find the actual spikes in V_soma
-for i = 1:n_bursts
-	spikes_in_this_burst = spike_times(all_burst_starts(i) <= spike_times & all_burst_ends(i) >= spike_times);
-	for j = 2:length(spikes_in_this_burst)-1
-		% find the max b/w this idx and the next one
-		[~,idx] = max(V_soma(spikes_in_this_burst(j):spikes_in_this_burst(j+1)));
-		V_soma_spikes(c) = spikes_in_this_burst(j) + idx;
-		c = c + 1;
-	end
-
-	% now measure spike amplitudes
-	spikes_in_this_burst = V_soma_spikes(all_burst_starts(i) <= V_soma_spikes & all_burst_ends(i) >= V_soma_spikes);
-	for j = 1:length(spikes_in_this_burst)-1
-		% find the max b/w this idx and the next one
-		min_V = min(V_soma(spikes_in_this_burst(j):spikes_in_this_burst(j+1)));
-		V_soma_spikes_amp(cc) = V_soma(spikes_in_this_burst(j)) -min_V;
-		cc = cc + 1;
-	end
-end
-
-V_soma_spikes = nonnans(V_soma_spikes);
-spike_height_in_soma = nanmean(V_soma_spikes_amp);
-
-C = C + bin_cost(spike_height_in_soma_range,spike_height_in_soma);
 
 
 function c = bin_cost(allowed_range,actual_value)

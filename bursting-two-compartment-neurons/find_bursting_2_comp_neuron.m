@@ -1,5 +1,8 @@
 
 x = make2C;
+x.transpile;
+x.compile;
+x.skip_hash_check = true;
 p = procrustes('particleswarm');
 p.x = x;
 
@@ -20,15 +23,17 @@ x.set(p.parameter_names,p.seed);
 p.lb = lb;
 p.ub = ub;
 
-p.sim_func = @two_comp_spike_height;
+p.sim_func = @two_comp_cost_func;
 
 
 N = 1e3;
 n_epochs = 1;
 all_g = NaN(M,N);
 all_cost = NaN(N,1);
+cost_wo_NaV = NaN(N,1);
+spike_height = NaN(N,1);
 
-file_name = ['reprinz_2c_spikes_in_soma_' getComputerName '.mat'];
+file_name = ['reprinz_2c_with_spike_ht_' getComputerName '.mat'];
 
 if exist(file_name)
 	load(file_name)
@@ -38,8 +43,7 @@ else
 end
 
 p.options.MaxTime = 300;
-p.options.Display = 'iter';
-
+p.options.Display = 'none';
 
 for i = start_idx:N
 	disp(['Starting with random seed #' oval(i)])
@@ -57,9 +61,14 @@ for i = start_idx:N
 		disp(['Final Cost for this seed is ' oval(all_cost(i))])
 
 		all_g(:,i) = p.seed;
+
+		x.set(x.find('Neurite*gbar'),all_g(:,i));	
+		x.set(x.find('Soma*gbar'),all_g(:,i));
+		x.Soma.NaV.gbar = 0;
+		[cost_wo_NaV(i),~,spike_height(i)] = two_comp_cost_func(x);
 		 
 
-		save(file_name,'all_g','all_cost')
+		save(file_name,'all_g','all_cost','cost_wo_NaV','spike_height')
 
 	catch
 		disp('Something went wrong. Ouch. ')

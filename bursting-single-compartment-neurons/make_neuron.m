@@ -27,3 +27,5 @@ x.sim_dt = .1;
 
 x.transpile;
 x.compile;
+
+x.skip_hash_check = true;
