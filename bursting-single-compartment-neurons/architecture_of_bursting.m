@@ -144,6 +144,26 @@ if being_published
 end
 
 
+%%
+% How does this picture change if we add a sloppy parameter? Here, I add a uniformly distributed random variable and re-embed. 
+
+
+RandStream.setGlobalStream(RandStream('mt19937ar','Seed',1234));
+sloppy_param = mean(vectorise(ratio_g(1:6,:)))*rand(length(all_g),1);
+R = mctsne([ratio_g(1:6,:); sloppy_param']);
+
+figure('outerposition',[0 0 600 600],'PaperUnits','points','PaperSize',[1000 600]); hold on
+scatter(R(1,:),R(2,:),32,[.4 .4 .4],'filled','Marker','o','MarkerFaceAlpha',.3,'MarkerEdgeAlpha',.9);
+axis off
+
+prettyFig()
+
+if being_published	
+	snapnow	
+	delete(gcf)
+end
+
+
 %% Version Info
 %
 pFooter;
