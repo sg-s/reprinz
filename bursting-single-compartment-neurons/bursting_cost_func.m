@@ -32,7 +32,7 @@ C = sum(cost_vector(:));
 
 
 CV_Ca_peak_period_range = [0 .1];
-n_spikes_per_burst_range = [4 30];
+n_spikes_per_burst_range = [4 10];
 max_min_V_within_burst = -40; 
 cycle_period_range = [1.23 1.788]; % mean +/- 1 SD
 burst_duration_range = [0.4490  0.7150]; % PD, sec

@@ -28,7 +28,7 @@ p.sim_func = @STG_cost_function;
 
 
 N = 1e3;
-n_epochs = 3;
+n_epochs = 5;
 all_g = NaN(28,N);
 all_metrics = NaN(18,N);
 all_cost = NaN(N,1);

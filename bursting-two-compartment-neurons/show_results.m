@@ -1,56 +1,32 @@
 x = make2C;
+x.sha1hash;
 show_these = shuffle(find(all_cost == 0));
 
 for i = 1:length(show_these)
 
-	pause(2)
+	if spike_height(show_these(i)) < 5
+		continue
+	end
 
-	x.set(x.find('Neurite*gbar'),all_g(:,show_these(i)));	
-	two_comp_cost_func(x)
+	if isnan(spike_height(show_these(i)))
+		continue
+	end
 
-	title(show_these(i))
-
-	drawnow
-	
-
-end
-
-% show nice ones
-show_these = [175 537 42 592 491 736 934 410 407 914];
-
-figure('outerposition',[0 0 800 900],'PaperUnits','points','PaperSize',[1000 500]); hold on
-for i = 1:10
-	ax(i) = subplot(5,2,i); hold on
-	
-	ylabel(ax(i),'V_m (mV)')
-end
-
-for i = 1:10
+	pause(1)
 	x.set(x.find('Neurite*gbar'),all_g(:,show_these(i)));	
 	x.set(x.find('Soma*gbar'),all_g(:,show_these(i)));
-	x.Soma.NaV.gbar = 0;
+	%x.Soma.NaV.gbar = 0;
+	x.integrate;
 	V = x.integrate;
 	time = (1:length(V))*x.dt*1e-3;
-	plot(ax(i),time,V(:,2),'k')
-	set(ax(i),'YLim',[-80 -10],'XLim',[0 3])
+	figure('outerposition',[0 0 1000 500],'PaperUnits','points','PaperSize',[1000 500]); hold on
+	plot(time,V(:,2),'k')
+	set(gca,'YLim',[-80 -10],'XLim',[0 3])
+	title(show_these(i))
+	drawnow
 end
 
-prettyFig('plw',1);
 
-
-
-% for all these neurons, measure the cost without NaV, and the spike height 
-cost_wo_NaV = NaN*all_cost;
-spike_height = NaN*all_cost;
-for i = 1:length(all_cost)
-	if rand > .9
-		textbar(i,length(all_cost))
-	end
-	x.set(x.find('Neurite*gbar'),all_g(:,i));	
-	x.set(x.find('Soma*gbar'),all_g(:,i));
-	x.Soma.NaV.gbar = 0;
-	[cost_wo_NaV(i),~,spike_height(i)] = two_comp_cost_func(x);
-end
 
 % now t-SNE the gbars and color them by bursting w/o NaV in soma 
 R = mctsne(all_g);

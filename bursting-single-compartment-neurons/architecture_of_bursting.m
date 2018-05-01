@@ -18,6 +18,7 @@ ratio_g = all_g./all_g(end,:);
 
 
 x = make_neuron;
+x.sha1hash;
 x.t_end = 3e3;
 
 channels = x.AB.find('conductance');

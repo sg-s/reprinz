@@ -12,7 +12,7 @@
 %
 % 
 
-function [C, cost_vector, metrics_vector] = STG_cost_function(x)
+function [C, cost_vector, metrics_vector] = STG_cost_function(x,~,~)
 
 
 metrics_vector = NaN(18,1);
@@ -51,9 +51,9 @@ C = sum(cost_vector(:));
 CV_Ca_peak_period_range = [0 .1];
 
 n_spikes_per_burst_range = NaN(2,3);
-n_spikes_per_burst_range(:,1) = [4 30];
-n_spikes_per_burst_range(:,2) = [4 30];
-n_spikes_per_burst_range(:,3) = [4 30];
+n_spikes_per_burst_range(:,1) = [4 7.2]; % my calculations, mean +/- 1 SD
+n_spikes_per_burst_range(:,2) = [5 10]; 
+n_spikes_per_burst_range(:,3) = [6 9];
 
 max_min_V_within_burst = -40; 
 

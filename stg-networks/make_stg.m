@@ -54,6 +54,3 @@ x.connect('LP','AB','Glut','gbar',30);
 x.t_end = 25e3;
 x.dt = .1;
 x.sim_dt = .1;
-
-x.transpile;
-x.compile;

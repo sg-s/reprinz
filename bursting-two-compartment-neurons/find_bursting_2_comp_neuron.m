@@ -1,8 +1,6 @@
 
 x = make2C;
-x.transpile;
-x.compile;
-x.skip_hash_check = true;
+x.sha1hash
 p = procrustes('particleswarm');
 p.x = x;
 
@@ -26,7 +24,7 @@ p.ub = ub;
 p.sim_func = @two_comp_cost_func;
 
 
-N = 1e3;
+N = 1e4;
 n_epochs = 1;
 all_g = NaN(M,N);
 all_cost = NaN(N,1);

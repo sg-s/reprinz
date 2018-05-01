@@ -4,15 +4,14 @@
 % however, the gbars in the 2nd compartment are nailed
 % to the gbars in the first compartment
 
-function [C, cost_vector, spike_height_in_soma] = two_comp_cost_func(x,~,~)
+function [C, cost_vector, spike_height_in_soma] = two_comp_cost_func(x,~,V_clamp)
 
 
 % first, make the default cost_vector
-cost_vector = zeros(4,1);
+cost_vector = zeros(3,1);
 cost_vector(1) = 1e5; % is it bursting?  
 cost_vector(2) = 1e4;
 cost_vector(3) = 1e3;
-cost_vector(4) = 1e2; 
 
 
 C = sum(cost_vector(:));
@@ -56,7 +55,18 @@ if nargout < 3
 	end
 end
 
+% clone reversal potential for potassium
+E_K = x.Neurite.Kd.E;
+x.Neurite.ACurrent.E = E_K;
+x.Neurite.KCa.E = E_K;
+x.Soma.ACurrent.E = E_K;
+x.Soma.KCa.E = E_K;
+x.Soma.Kd.E = E_K;
 
+% clone tau_Ca
+x.Soma.tau_Ca = x.Neurite.tau_Ca;
+
+x.t_end = 15e3;
 [V,Ca] = x.integrate;
 cutoff = floor(5e3/x.dt);
 V_soma = V(cutoff:end,2);
@@ -101,10 +111,10 @@ end
 C = sum(cost_vector(:));
 
 if nargout == 0
-	disp(['This level cost is ' oval(cost_vector(1))])
+	disp(['Level 1 cost is ' oval(cost_vector(1))])
 end
 
-if cost_vector(1) > 1
+if cost_vector(1) > 1 && nargout 
 	return
 end
 
@@ -139,7 +149,9 @@ if cost_vector(2) > 1
 	end
 
 	C = sum(cost_vector(:));
-	return
+	if nargout 
+		return
+	end
 end
 
 
@@ -158,8 +170,9 @@ if length(ons) ~= length(offs)
 	if nargout == 0
 		disp('Aborting, because ons and offs have different lengths')
 	end
-
-	return
+	if nargout
+		return
+	end
 end
 
 % find peaks b/w ons and offs
@@ -195,7 +208,9 @@ Ca_min_times = Ca_min_times*x.dt*1e-3;
 % make sure there are more than 3 peaks
 if length(nonnans(Ca_peak_times)) < 3
 	C = C + 1e4;
-	return
+	if nargout
+		return
+	end
 end
 
 % step 2 of 3 -- check that Ca peaks occur regularly
@@ -249,11 +264,13 @@ for j = 1:length(this_n_spikes)
 	end
 end
 
-
+if nargout == 0
+	disp(['Level 2 cost is ' oval(cost_vector(2))])
+end
 
 C = sum(cost_vector(:));
 
-if any(cost_vector(2,:) > 1)
+if any(cost_vector(2,:) > 1) && nargout
 	return
 end
 
@@ -303,12 +320,20 @@ for j = 1:n_bursts
 end
 
 
+if nargout == 0
+	disp(['Level 3 cost is ' oval(cost_vector(3))])
+end
+
 C = sum(cost_vector(:));
 
-if cost_vector(3) > 1
+
+if C > 0 && nargout
 	return
 end
 
+if nargout == 0
+	disp(['Pre-clamp cost is ' mat2str(C)])
+end
 ;;       ;;;;;;;; ;;     ;; ;;;;;;;; ;;          ;;        
 ;;       ;;       ;;     ;; ;;       ;;          ;;    ;;  
 ;;       ;;       ;;     ;; ;;       ;;          ;;    ;;  
@@ -317,75 +342,27 @@ end
 ;;       ;;         ;; ;;   ;;       ;;                ;;  
 ;;;;;;;; ;;;;;;;;    ;;;    ;;;;;;;; ;;;;;;;;          ;;  
 
-% here we check that neuron-specific parameters like the period, duration and duty cycle are within the experimental range. 
+% now we clamp the cell, reintegrating
 
-level_cost = 1e2; 
-cost_vector(4) = 0;
+x.t_end = length(V_clamp)*x.dt;
 
-% measure burst frequencies of neuron
-all_periods = mean(diff(nonnans(Ca_min_times)));
+x.reset;
+x.Soma.V  = V_clamp(1);
+% x.Neurite.V  = V_clamp(1,2);
 
-
-
-% penalize them based on how far they are from the 
-% experimental range 
-cost_vector(4) = cost_vector(4) + bin_cost(cycle_period_range,all_periods);
+I_clamp = x.integrate([],V_clamp');
 
 
-% durations 
-cost_vector(4) = cost_vector(4) + level_cost*bin_cost(burst_duration_range,nanmean(all_durations));
 
+C = mean(abs(I_clamp(20e3:end,1)));
 
-% duty cycle
-all_duty_cycle = nanmean(all_durations)./all_periods;
-
-cost_vector(4) = cost_vector(4) + level_cost*bin_cost(duty_cycle_range,all_duty_cycle);
-
-C = sum(cost_vector(:));
-
-% if asked for, measure spike heights in soma
-if nargout < 3
-	return
+if nargout == 0
+	figure('outerposition',[0 0 1000 500],'PaperUnits','points','PaperSize',[1000 500]); hold on
+	plot(V_clamp(:,1),'k')
+	hold on
+	V = x.integrate;
+	plot(V(:,1))
 end
-
-% figure('outerposition',[0 0 1000 500],'PaperUnits','points','PaperSize',[1000 500]); hold on
-% plot(time,V_soma); hold on
-
-spike_times = round((1/(x.dt*1e-3))*nonnans(spike_times));
-all_burst_starts = round((1/(x.dt*1e-3))*nonnans(all_burst_starts));
-all_burst_ends = round((1/(x.dt*1e-3))*nonnans(all_burst_ends));
-
-V_soma_spikes = NaN*spike_times;
-V_soma_spikes_amp = NaN*spike_times;
-c = 1;
-cc = 1;
-
-% find the actual spikes in V_soma
-for i = 1:n_bursts
-	spikes_in_this_burst = spike_times(all_burst_starts(i) <= spike_times & all_burst_ends(i) >= spike_times);
-	for j = 2:length(spikes_in_this_burst)-1
-		% find the max b/w this idx and the next one
-		[~,idx] = max(V_soma(spikes_in_this_burst(j):spikes_in_this_burst(j+1)));
-		V_soma_spikes(c) = spikes_in_this_burst(j) + idx;
-		c = c + 1;
-	end
-
-	% now measure spike amplitudes
-	spikes_in_this_burst = V_soma_spikes(all_burst_starts(i) <= V_soma_spikes & all_burst_ends(i) >= V_soma_spikes);
-	for j = 1:length(spikes_in_this_burst)-1
-		% find the max b/w this idx and the next one
-		min_V = min(V_soma(spikes_in_this_burst(j):spikes_in_this_burst(j+1)));
-		V_soma_spikes_amp(cc) = V_soma(spikes_in_this_burst(j)) -min_V;
-		cc = cc + 1;
-	end
-end
-
-V_soma_spikes = nonnans(V_soma_spikes);
-
-% plot(time(V_soma_spikes),V_soma(V_soma_spikes),'ro')
-% set(gca,'XLim',[0 3])
-
-spike_height_in_soma = nanmean(V_soma_spikes_amp);
 
 function c = bin_cost(allowed_range,actual_value)
 

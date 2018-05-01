@@ -24,8 +24,3 @@ x.AB.add('prinz-approx/HCurrent','gbar',.1,'E',-20);
 x.t_end = 20e3;
 x.dt = .1;
 x.sim_dt = .1;
-
-x.transpile;
-x.compile;
-
-x.skip_hash_check = true;

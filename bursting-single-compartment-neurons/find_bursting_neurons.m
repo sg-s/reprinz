@@ -1,5 +1,6 @@
 
 x = make_neuron;
+x.sha1hash;
 p = procrustes('particleswarm');
 p.x = x;
 
@@ -44,7 +45,7 @@ p.options.Display = 'iter';
 
 for i = start_idx:N
 	disp(['Starting with random seed #' oval(i)])
-	try
+	%try
 		p.seed = rand(M,1).*experimental_range; % random seed
 		for j = 1:n_epochs
 			p.fit;
@@ -62,9 +63,9 @@ for i = start_idx:N
 
 		save(file_name,'all_g','all_cost')
 
-	catch
-		disp('Something went wrong. Ouch. ')
-	end
+	% catch
+	% 	disp('Something went wrong. Ouch. ')
+	% end
 
 
 
