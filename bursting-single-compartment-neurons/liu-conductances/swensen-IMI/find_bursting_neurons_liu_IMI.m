@@ -27,7 +27,7 @@ p.ub = ub;
 p.sim_func = @bursting_cost_func;
 
 
-N = 5;
+N = 1e4;
 n_epochs = 1;
 all_g = NaN(M,N);
 all_cost = NaN(N,1);
