@@ -22,7 +22,7 @@ x.skip_hash = true;
 	x.add('Soma','compartment','radius',r_soma,'len',L_soma,'phi',phi,'Ca_out',3000,'Ca_in',0.05,'tree_idx',0,'shell_thickness',shell_thickness);
 	x.add('Neurite','compartment','radius',r_neurite,'len',L_neurite,'phi',phi,'Ca_out',3000,'Ca_in',0.05,'shell_thickness',shell_thickness);
 
-	prefix = 'prinz/';
+	prefix = 'prinz-approx/';
 	channels = {'ACurrent','CaS','CaT','HCurrent','KCa','Kd','NaV'};
 	g =           [500;     100;   25 ;   1;      10;   1e3;  1500];
 	E =           [-80;      30;   30;   -20;     -80;   -80;  50 ];
