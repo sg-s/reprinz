@@ -6,7 +6,7 @@ p.x = x;
 
 p.parameter_names = {'Soma.ACurrent.gbar', 'Soma.CaS.gbar', 'Soma.CaT.gbar', 'Soma.HCurrent.gbar', 'Soma.KCa.gbar' , 'Soma.Kd.gbar' , 'Soma.NaV.gbar' };
 
-show_these = shuffle(find(~isnan(all_cost)));
+show_these = (find(~isnan(all_cost)));
 
 for i = 1:length(show_these)
 

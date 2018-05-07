@@ -191,7 +191,7 @@ if ~isempty(burst_starts)
 		nspb = mean(nspb);
 
 		% deliberately over weight this cost
-		nspb_cost = (level_cost/4)*bin_cost(n_spikes_per_burst_range,nspb);
+		nspb_cost = (level_cost)*bin_cost(n_spikes_per_burst_range,nspb);
 	else
 		% too variable, give it a high cost
 		nspb_cost = level_cost;
