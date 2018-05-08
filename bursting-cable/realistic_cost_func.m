@@ -208,6 +208,13 @@ if ~isempty(burst_starts)
 	dc_cost = (level_cost/4)*bin_cost(duty_cycle_range,all_duty_cycle);
 
 
+	% now also check for the real ISIs
+	true_isis = isis(isis<ibi_range(1));
+	isi_cost = 0*true_isis;
+	for i = 1:length(true_isis)
+		isi_cost(i) = bin_cost(isi_range,true_isis(i));
+	end
+	isi_cost = sum(isi_cost)*(level_cost/4);
 
 
 	if ~nargout
@@ -215,9 +222,10 @@ if ~isempty(burst_starts)
 		disp(['Duration cost = ' oval(duration_cost)])
 		disp(['Duty cycle cost = ' oval(dc_cost)])
 		disp(['#spikes/burst  cost = ' oval(nspb_cost)])
+		disp(['ISI  cost = ' oval(isi_cost)])
 	end
 
-	cost_vector(3) =  period_cost + duration_cost + dc_cost + nspb_cost;
+	cost_vector(3) =  period_cost + duration_cost + dc_cost + nspb_cost + isi_cost;
 
 
 end
