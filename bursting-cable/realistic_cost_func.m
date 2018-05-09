@@ -33,6 +33,8 @@ end
 C = 1e9;
 cost_vector = [1e4 1e3 3e2];
 
+slow_wave_range = [20 30];
+
 isi_range = [.02 .08];
 ibi_range = [.5 1.5 ]; % seconds
 
@@ -97,7 +99,7 @@ time = (1:length(V))*x.dt*1e-3;
 
 if nargout == 0
 
-	figure('outerposition',[300 300 1200 900],'PaperUnits','points','PaperSize',[1200 900]); hold on
+	figure('outerposition',[3 300 1200 900],'PaperUnits','points','PaperSize',[1200 900]); hold on
 	subplot(2,1,1); hold on
 	plot(time,V,'k')
 	ylabel('V_{terminal} (mV)')
@@ -191,7 +193,7 @@ if ~isempty(burst_starts)
 		nspb = mean(nspb);
 
 		% deliberately over weight this cost
-		nspb_cost = (level_cost)*bin_cost(n_spikes_per_burst_range,nspb);
+		nspb_cost = (level_cost/2)*bin_cost(n_spikes_per_burst_range,nspb);
 	else
 		% too variable, give it a high cost
 		nspb_cost = level_cost;
@@ -199,13 +201,13 @@ if ~isempty(burst_starts)
 
 
 	% measure burst frequencies of neuron
-	all_periods = mean(diff(burst_starts));
+	all_periods = (mean(diff(burst_starts)) + mean(diff(burst_ends)))/2;
 	all_durations = nanmean(burst_ends - burst_starts);
 
-	period_cost = (level_cost/4)*bin_cost(cycle_period_range,all_periods);
-	duration_cost = (level_cost/4)*bin_cost(burst_duration_range,nanmean(all_durations));
+	period_cost = (level_cost/5)*bin_cost(cycle_period_range,all_periods);
+	duration_cost = (level_cost/5)*bin_cost(burst_duration_range,nanmean(all_durations));
 	all_duty_cycle = nanmean(all_durations)/all_periods;
-	dc_cost = (level_cost/4)*bin_cost(duty_cycle_range,all_duty_cycle);
+	dc_cost = (level_cost/5)*bin_cost(duty_cycle_range,all_duty_cycle);
 
 
 	% now also check for the real ISIs
@@ -214,8 +216,26 @@ if ~isempty(burst_starts)
 	for i = 1:length(true_isis)
 		isi_cost(i) = bin_cost(isi_range,true_isis(i));
 	end
-	isi_cost = sum(isi_cost)*(level_cost/4);
+	isi_cost = sum(isi_cost)*(level_cost/5);
 
+	% measure some characteristics of the slow wave
+	slow_wave_max = NaN*burst_ends;
+
+
+	for i = 1:length(burst_starts)
+		if isnan(burst_ends(i))
+			continue
+		end
+		a = floor(burst_starts(i)*1e3/x.dt);
+		z = ceil(burst_ends(i)*1e3/x.dt);
+		slow_wave_max(i) = min(V_soma(a:z));
+	end
+
+
+	slow_wave_amps = slow_wave_max - min(V_soma);
+
+	% slow wave cost is a little higher
+	slow_wave_cost = (level_cost/4)*bin_cost(slow_wave_range,mean(slow_wave_amps));
 
 	if ~nargout
 		disp(['Period cost = ' oval(period_cost)])
@@ -223,16 +243,26 @@ if ~isempty(burst_starts)
 		disp(['Duty cycle cost = ' oval(dc_cost)])
 		disp(['#spikes/burst  cost = ' oval(nspb_cost)])
 		disp(['ISI  cost = ' oval(isi_cost)])
+		disp(['Slow wave  cost = ' oval(slow_wave_cost)])
 	end
 
-	cost_vector(3) =  period_cost + duration_cost + dc_cost + nspb_cost + isi_cost;
 
+
+	cost_vector(3) =  period_cost + duration_cost + dc_cost + nspb_cost + isi_cost + slow_wave_cost;
+
+
+else
+	C = C + 300;
 
 end
 
 	C = sum(cost_vector(:));
 
 	function c = bin_cost(allowed_range,actual_value)
+
+		if isnan(actual_value)
+			actual_value = allowed_range(2)*10;
+		end
 
 		w = (allowed_range(2) - allowed_range(1))/2;
 		m = (allowed_range(2) + allowed_range(1))/2;

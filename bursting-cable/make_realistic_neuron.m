@@ -53,22 +53,3 @@ x.skip_hash = false; x.sha1hash;
 x.dt = .1;
 x.sim_dt = .1;
 x.t_end = 5e3;
-
-
-% x.integrate;
-% [V,Ca] = x.integrate;
-
-% figure('outerposition',[300 300 1200 900],'PaperUnits','points','PaperSize',[1200 900]); hold on
-% subplot(2,1,1); hold on
-% time = 1e-3*(1:length(V))*x.dt;
-% plot(time,V(:,end-1),'k')
-% set(gca,'YLim',[-80 40])
-% title('Axial resitivity = 1 k Ohm mm')
-% ylabel('V_{terminal} (mV)')
-% subplot(2,1,2); hold on
-% plot(time,V(:,end),'k')
-% set(gca,'YLim',[-80 40])
-% xlabel('Time (s)')
-% ylabel('V_{soma} (mV)')
-
-% prettyFig('plw',1.5);
