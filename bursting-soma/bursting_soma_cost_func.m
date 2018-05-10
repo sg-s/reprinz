@@ -61,19 +61,19 @@ H_contrib = sum((curr_contrib == 4).*(dV>0))/sum(dV>0);
 % KCa should contribute to downswing 
 KCa_contrib = sum((curr_contrib == 5).*(dV<0))/sum(dV<0);
 
-contrib_cost = 50*bin_cost([.1 .9],H_contrib) + bin_cost([.1 .9],KCa_contrib);
+contrib_cost = 2*bin_cost([.1 .9],H_contrib) + bin_cost([.1 .9],KCa_contrib);
 
 
-period_cost = 50*bin_cost(cycle_period_range,mean(diff(burst_peak_locs*x.dt*1e-3)));
+period_cost = 2*bin_cost(cycle_period_range,mean(diff(burst_peak_locs*x.dt*1e-3)));
 
 
 
-amplitude_cost = 10*bin_cost(slow_wave_range,mean(burst_peaks - burst_troughs));
+amplitude_cost = bin_cost(slow_wave_range,mean(burst_peaks - burst_troughs));
 
 % duty cycle
 V_midpoint = (mean(burst_peaks) + mean(burst_troughs))/2;
 duty_cycle = mean(V>V_midpoint);
-dc_cost = 30*bin_cost(duty_cycle_range,duty_cycle);
+dc_cost = bin_cost(duty_cycle_range,duty_cycle);
 
 
 
