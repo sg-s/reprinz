@@ -43,7 +43,7 @@ p.options.MaxTime = 300;
 p.options.Display = 'iter';
 
 
-for i = start_idx:start_idx
+for i = start_idx:N
 	disp(['Starting with random seed #' oval(i)])
 	%try
 		p.seed = rand(M,1).*ub(:); % random seed
