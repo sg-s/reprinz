@@ -15,20 +15,18 @@ x = xolotl;
 
 x.add('Soma','compartment','radius',r_soma,'len',L_soma,'phi',phi,'Ca_out',3000,'Ca_in',0.05,'tree_idx',0,'shell_thickness',shell_thickness);
 
-prefix = 'liu/';
-channels = {'ACurrent','CaS','CaT','HCurrent','KCa','Kd','Leak'};
-g =           [500;     100;   25 ;   1;      10;   1e3;  1500];
-E =           [-80;      30;   30;   -20;     -80;  -80;  -50 ];
-
-for i = 1:length(channels)-1
-	x.Soma.add([prefix channels{i}],'gbar',g(i),'E',E(i));
-end
-i = i + 1;
-x.Soma.add([channels{i}],'gbar',g(i),'E',E(i));
+% add the channels
+x.Soma.add('prinz/ACurrent','E',-80);
+x.Soma.add('prinz/CaS','E',0);
+x.Soma.add('prinz/CaT','E',0);
+x.Soma.add('liu/HCurrent','E',-20);
+x.Soma.add('prinz/KCa','E',-80);
+x.Soma.add('prinz/Kd','E',-80);
+x.Soma.add('Leak','E',-50);
 
 
-x.dt = .2;
-x.sim_dt = .2;
+x.dt = 1;
+x.sim_dt = 1;
 x.t_end = 15e3;
 
 x.sha1hash;

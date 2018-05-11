@@ -61,7 +61,7 @@ H_contrib = sum((curr_contrib == 4).*(dV>0))/sum(dV>0);
 % KCa should contribute to downswing 
 KCa_contrib = sum((curr_contrib == 5).*(dV<0))/sum(dV<0);
 
-contrib_cost = 2*bin_cost([.1 .9],H_contrib) + bin_cost([.1 .9],KCa_contrib);
+contrib_cost = 3*bin_cost([.1 .9],H_contrib) + bin_cost([.1 .9],KCa_contrib);
 
 
 period_cost = 2*bin_cost(cycle_period_range,mean(diff(burst_peak_locs*x.dt*1e-3)));
@@ -75,12 +75,14 @@ V_midpoint = (mean(burst_peaks) + mean(burst_troughs))/2;
 duty_cycle = mean(V>V_midpoint);
 dc_cost = bin_cost(duty_cycle_range,duty_cycle);
 
+% up and down phases should be equally spaced
+symmetry_ratio =  (sum(dV>0) - sum(dV<0))/length(dV);
+symmetry_cost = bin_cost([0 .2],symmetry_ratio);
 
-
-C = dc_cost + amplitude_cost + period_cost + contrib_cost;
+C = dc_cost + amplitude_cost + period_cost + contrib_cost + symmetry_cost;
 
 if nargout == 0
-	figure('outerposition',[300 300 1200 600],'PaperUnits','points','PaperSize',[1200 600]); hold on
+	figure('outerposition',[30 30 1200 600],'PaperUnits','points','PaperSize',[1200 600]); hold on
 	plot(time,V,'k')
 
 	disp(['Period cost = ' oval(period_cost)])
@@ -88,6 +90,7 @@ if nargout == 0
 	disp(['H current conribution is = ' oval(H_contrib)])
 	disp(['KCa current conribution is = ' oval(KCa_contrib)])
 	disp(['Amplitude  cost = ' oval(amplitude_cost)])
+	disp(['Symmetry  cost = ' oval(symmetry_cost)])
 end
 
 
