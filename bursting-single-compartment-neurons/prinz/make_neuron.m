@@ -1,4 +1,4 @@
-function x =  make_neuron_liu()
+function x =  make_neuron()
 
 % conversion from Prinz to phi
 vol = 1; % this can be anything, doesn't matter
