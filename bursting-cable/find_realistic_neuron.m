@@ -1,10 +1,11 @@
 
-x = make_realistic_neuron();
-x.sha1hash;
+clear x
+x = make_realistic_cable();
+
 p = procrustes('particleswarm');
 p.x = x;
 
-p.parameter_names = {'Soma.ACurrent.gbar', 'Soma.CaS.gbar', 'Soma.CaT.gbar', 'Soma.HCurrent.gbar', 'Soma.KCa.gbar' , 'Soma.Kd.gbar' , 'Soma.NaV.gbar' };
+p.parameter_names = {'CellBody.ACurrent.gbar', 'CellBody.CaS.gbar', 'CellBody.CaT.gbar', 'CellBody.HCurrent.gbar', 'CellBody.KCa.gbar' , 'CellBody.Kd.gbar' , 'CellBody.NaV.gbar' };
 
 M = length(p.parameter_names);
 

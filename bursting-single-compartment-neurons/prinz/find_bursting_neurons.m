@@ -1,4 +1,5 @@
 
+
 x = make_neuron;
 x.sha1hash;
 p = procrustes('particleswarm');
@@ -26,7 +27,7 @@ p.sim_func = @bursting_cost_func;
 
 
 N = 1e4;
-n_epochs = 1;
+n_epochs = 3;
 all_g = NaN(M,N);
 all_cost = NaN(N,1);
 
@@ -46,7 +47,11 @@ p.options.Display = 'iter';
 for i = start_idx:start_idx
 	disp(['Starting with random seed #' oval(i)])
 	try
+		
+
 		p.seed = rand(M,1).*experimental_range; % random seed
+
+
 		for j = 1:n_epochs
 			p.fit;
 		end

@@ -5,11 +5,13 @@ V_clamp = V(1:9e4);
 x = make2C;
 
 x.t_end = 9e3;
-
 x.dt = .1;
+x.sim_dt = .1;
+x.V_clamp = repmat(V_clamp,1,2);
+x.V_clamp(:,2) = NaN;
+
 p = procrustes('particleswarm');
 p.x = x;
-p.V_clamp = V_clamp;
 
 p.parameter_names = [x.find('Soma*gbar'); 'Soma.tau_Ca'; 'Soma.Ca'];
 

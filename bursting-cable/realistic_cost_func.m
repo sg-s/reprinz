@@ -2,7 +2,7 @@
 % a mulit-compartment neuron model
 
 
-function C = realistic_cost_func(x,~,~)
+function C = realistic_cost_func(x)
 
 ;;;;;;;;     ;;;    ;;;;;;;;     ;;;    ;;     ;;  ;;;;;;  
 ;;     ;;   ;; ;;   ;;     ;;   ;; ;;   ;;;   ;;; ;;    ;; 
@@ -14,15 +14,15 @@ function C = realistic_cost_func(x,~,~)
 
 
 % first set up the parmeters
-g = x.get(x.find('Soma*gbar'));
+g = x.get(x.find('CellBody*gbar'));
 comp_names = x.find('compartment');
 for i = 1:length(comp_names)
 	x.(comp_names{i}).set(x.(comp_names{i}).find('*gbar'),g);
 end
 
 
-% turn off NaV close to the soma
-x.Soma.NaV.gbar = 0;
+% turn off NaV close to the CellBody
+x.CellBody.NaV.gbar = 0;
 start_axon = floor(length(comp_names)/2);
 
 for i = 1:start_axon
@@ -51,7 +51,7 @@ duty_cycle_range = [.3450 .4250];
 [V,Ca] = x.integrate;
 x.t_end = 15e3;
 cutoff = floor(5e3/x.dt);
-V_soma = V(cutoff:end,end);
+V_soma = V(cutoff:end,1);
 V = V(cutoff:end,end-1);
 T = length(V)*x.dt*1e-3; % seconds
 

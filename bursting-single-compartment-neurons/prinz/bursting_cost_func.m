@@ -106,7 +106,7 @@ end
 C = sum(cost_vector(:));
 
 if nargout == 0
-	disp(['This level cost is ' oval(cost_vector(1))])
+	disp(['Level 1 cost is ' oval(cost_vector(1))])
 end
 
 if cost_vector(1) > 1

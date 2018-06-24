@@ -38,7 +38,7 @@ x.skip_hash = true;
 
 	x.connect('Neurite','Soma',axial_resitivity);
 
-x.skip_hash = false; x.sha1hash;
+x.skip_hash = false; x.md5hash;
 
 
 x.dt = .1;

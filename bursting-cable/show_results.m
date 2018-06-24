@@ -1,6 +1,6 @@
 
 x = make_realistic_neuron();
-x.sha1hash;
+x.md5hash;
 
 parameter_names = {'Soma.ACurrent.gbar', 'Soma.CaS.gbar', 'Soma.CaT.gbar', 'Soma.HCurrent.gbar', 'Soma.KCa.gbar' , 'Soma.Kd.gbar' , 'Soma.NaV.gbar' };
 
