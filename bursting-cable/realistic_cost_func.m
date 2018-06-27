@@ -23,7 +23,7 @@ end
 
 % turn off NaV close to the CellBody
 x.CellBody.NaV.gbar = 0;
-start_axon = floor(length(comp_names)/2);
+start_axon = 8;
 
 for i = 1:start_axon
 	x.(comp_names{i}).NaV.gbar = 0;

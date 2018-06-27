@@ -13,37 +13,42 @@ f = 14.96; % uM/nA
 phi = 100;
 
 x = xolotl;
-x.skip_hash = true;
+% x.skip_hash = true;
 
-	% x.add('Soma','compartment','radius',r_soma,'len',L_soma,'phi',phi,'Ca_out',3000,'Ca_in',0.05,'tree_idx',0);
-	% x.add('Neurite','compartment','radius',r_neurite,'len',L_neurite,'phi',phi,'Ca_out',3000,'Ca_in',0.05);
 
-	% make another copy that we will integrate using the old method
-	x.add('Soma','compartment','radius',r_soma,'len',L_soma,'phi',phi,'Ca_out',3000,'Ca_in',0.05);
-	x.add('Neurite','compartment','radius',r_neurite,'len',L_neurite,'phi',phi,'Ca_out',3000,'Ca_in',0.05);
+	% make compartments 
+	x.add('compartment','CellBody','radius',r_soma,'len',L_soma,'phi',phi,'Ca_out',3000,'Ca_in',0.05);
+	x.add('compartment','Neurite','radius',r_neurite,'len',L_neurite,'phi',phi,'Ca_out',3000,'Ca_in',0.05);
 
-	prefix = 'prinz-approx/';
-	channels = {'ACurrent','CaS','CaT','HCurrent','KCa','Kd','NaV'};
-	g =           [94;      11;    2 ;    .1;      10;  200;  600];
-	E =           [-80;      30;    30;  -20;     -80;   -80;  50 ];
 
-	compartments = x.find('compartment');
-	for i = 1:length(channels)
-		for j = 1:length(compartments)
-			x.(compartments{j}).add([prefix channels{i}],'gbar',g(i),'E',E(i));
-		end
-	end
+	x.CellBody.add('prinz-temperature/ACurrent','gbar',10);
+	x.CellBody.add('prinz-temperature/CaS','gbar',10);
+	x.CellBody.add('prinz-temperature/CaT','gbar',10);
+	x.CellBody.add('liu-temperature/HCurrent','gbar',10);
+	x.CellBody.add('prinz-temperature/KCa','gbar',10);
+	x.CellBody.add('prinz-temperature/Kd','gbar',10);
+	x.CellBody.add('Leak','gbar',10);
 
-	x.Soma.NaV.gbar = 0;
 
-	x.connect('Neurite','Soma',axial_resitivity);
+	x.Neurite.add('prinz-temperature/ACurrent','gbar',10);
+	x.Neurite.add('prinz-temperature/CaS','gbar',10);
+	x.Neurite.add('prinz-temperature/CaT','gbar',10);
+	x.Neurite.add('liu-temperature/HCurrent','gbar',10);
+	x.Neurite.add('prinz-temperature/KCa','gbar',10);
+	x.Neurite.add('prinz-temperature/Kd','gbar',10);
+	x.Neurite.add('prinz-temperature/NaV','gbar',10);
+	x.Neurite.add('Leak','gbar',10);
 
-x.skip_hash = false; x.md5hash;
+	x.CellBody.tree_idx = 0;
+	x.Neurite.tree_idx = 1; 
+	x.connect('Neurite','CellBody',axial_resitivity);
+
+	x.temperature_ref = 22;
+
+
+% x.skip_hash = false; x.md5hash;
 
 
 x.dt = .1;
 x.sim_dt = .1;
 x.t_end = 9e3;
-
-x.synapses(2).gbar = 500;
-x.synapses(1).gbar = 100;

@@ -1,8 +1,9 @@
 
-x = make_realistic_neuron();
+clear x
+x = make_realistic_cable();
 x.md5hash;
 
-parameter_names = {'Soma.ACurrent.gbar', 'Soma.CaS.gbar', 'Soma.CaT.gbar', 'Soma.HCurrent.gbar', 'Soma.KCa.gbar' , 'Soma.Kd.gbar' , 'Soma.NaV.gbar' };
+parameter_names = {'CellBody.ACurrent.gbar', 'CellBody.CaS.gbar', 'CellBody.CaT.gbar', 'CellBody.HCurrent.gbar', 'CellBody.KCa.gbar' , 'CellBody.Kd.gbar' , 'CellBody.NaV.gbar' };
 
 show_these = shuffle(find(~isnan(all_cost)));
 

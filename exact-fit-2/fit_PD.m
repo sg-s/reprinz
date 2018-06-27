@@ -1,5 +1,5 @@
 
-load('isolated_PD')
+load('../exact-fit/isolated_PD')
 V0 = V;
 T = 1e3;
 V = filtfilt(ones(T,1),T,V);
@@ -8,38 +8,57 @@ V0 = V0(1:9e4);
 dV = [NaN; diff(V)];
 dV0 = [NaN; diff(V0)];
 
-
-
+% find burst period
+[V_max,loc]=findpeaks(V);
+clear data
+data.slow_wave = V;
+data.V0 = V0;
+data.mu_period = mean(diff(loc));
+data.sigma_period = std(diff(loc));
+data.mu_peak = mean(V_max);
+data.sigma_peak = std(V_max);
+V_min=findpeaks(-V);
+data.mu_min = mean(-V_min);
+data.sigma_min = std(-V_min);
 
 % first just fit the slow wave
-x = make_bursting_soma;
+x = make2C;
 
 
 p = procrustes('particleswarm');
 p.x = x;
 
-p.parameter_names = {'CellBody.ACurrent.gbar', 'CellBody.CaS.gbar', 'CellBody.CaT.gbar', 'CellBody.HCurrent.gbar', 'CellBody.KCa.gbar' , 'CellBody.Kd.gbar' , 'CellBody.Leak.gbar' ,'CellBody.Ca'};
+p.parameter_names = [x.find('CellBody*gbar'); 'CellBody.Ca'] ;
 
-p.data.slow_wave = V;
+p.data = data;
 
 M = length(p.parameter_names);
 
-seed = x.get(p.parameter_names);
 
 
 % neuron conductances
-%      A   CaS  CaT   H    KCa  Kd    Leak  Ca    
-ub = [1e3  600  200  10   2e3   1e3   10    3e3 ];
-lb = [0    0    0    0    0     0     0     0.05];
+%      A   CaS  CaT   H    KCa   Kd    Leak Ca    
+ub = [2e3  2e2  125   1    2e3   2e3   10   3e3 ];
+lb = [0    0    0     0    0     0     0    .05 ];
 
 
 
 p.lb = lb;
 p.ub = ub;
 
-p.sim_func = @slow_wave_cost_func;
+p.sim_func = @exact_fit_cost_func;
 
-load('../bursting-soma/bursting_soma_dalek.local.mat')
+load('best_seed.mat','S')
+p.seed = S;
+
+
+
+
+return
+
+
+
+
 
 i = 1;
 

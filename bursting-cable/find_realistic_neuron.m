@@ -40,7 +40,7 @@ else
 	start_idx = 1;
 end
 
-p.options.MaxTime = 300;
+p.options.MaxTime = 600;
 p.options.Display = 'iter';
 
 
