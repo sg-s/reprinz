@@ -1,7 +1,7 @@
 % show the distributions of gbars
 
 x = make_neuron;
-x.sha1hash;
+x.md5hash;
 
 figure('outerposition',[0 0 1000 500],'PaperUnits','points','PaperSize',[1000 500]); hold on
 
@@ -19,9 +19,10 @@ show_these = shuffle(find(all_cost == 0));
 for i = 1:length(show_these)
 
 
-	pause(1)
 	x.set(x.find('*gbar'),all_g(:,show_these(i)))
 	bursting_cost_func(x)
+
+	pause(2)
 
 	close(gcf)
 	drawnow

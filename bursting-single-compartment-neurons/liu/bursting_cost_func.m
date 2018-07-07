@@ -90,7 +90,7 @@ time = (1:length(V))*x.dt*1e-3;
 
 if nargout == 0
 	if nargin < 3
-		figure('outerposition',[300 300 1200 500],'PaperUnits','points','PaperSize',[1200 900]); hold on
+		figure('outerposition',[300 600 1200 500],'PaperUnits','points','PaperSize',[1200 900]); hold on
 		ax = gca;
 	end
 	if show_soma
@@ -188,7 +188,7 @@ end
 
 if nargout == 0
 
-	figure('outerposition',[300 300 1200 300],'PaperUnits','points','PaperSize',[1200 900]); hold on
+	figure('outerposition',[300 0 1200 300],'PaperUnits','points','PaperSize',[1200 900]); hold on
 	plot(time,Ca,'k')
 	temp = nonnans(Ca_peak_times);
 	plot(time(temp),Ca(temp),'ro')

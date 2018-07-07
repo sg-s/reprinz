@@ -1,7 +1,7 @@
 
 
 x = make_neuron;
-x.sha1hash;
+
 p = procrustes('particleswarm');
 p.x = x;
 
@@ -12,10 +12,9 @@ M = length(p.parameter_names);
 seed = x.get(p.parameter_names);
 
 
-% neuron conductances
-experimental_range = [500; 100; 100; .5; 100; 1250; 2000];
-ub = [1e3 1e3 200 10 1e3 2e3 2e3];
-lb = ub*0 + 1e-2;
+% neuron conductances  A     CaS  CaT   H  KCa   Kd   Leak  NaV
+ub                 =  [500; 100;  100; 10; 100; 1250; .5   ;2000];
+lb                 =  [50 ; 20;   20; .1;  50;  250;   0   ;1e3];
 
 
 p.seed = rand(M,1).*ub; % random seed
@@ -49,7 +48,7 @@ for i = start_idx:N
 	try
 		
 
-		p.seed = rand(M,1).*experimental_range; % random seed
+		p.seed = rand(M,1).*(ub- lb) + lb; % random seed
 
 
 		for j = 1:n_epochs

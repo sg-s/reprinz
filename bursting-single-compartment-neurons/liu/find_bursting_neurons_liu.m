@@ -1,6 +1,6 @@
 
 x = make_neuron_liu();
-x.sha1hash;
+x.md5hash;
 p = procrustes('particleswarm');
 p.x = x;
 

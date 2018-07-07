@@ -7,6 +7,8 @@ parameter_names = {'CellBody.ACurrent.gbar', 'CellBody.CaS.gbar', 'CellBody.CaT.
 
 show_these = shuffle(find(~isnan(all_cost)));
 
+show_these = 615;
+
 for i = 1:length(show_these)
 
 

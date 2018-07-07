@@ -32,8 +32,8 @@ C = sum(cost_vector(:));
 
 
 CV_Ca_peak_period_range = [0 .1];
-n_spikes_per_burst_range = [14 50]; % lobster PD, range (Bucher et al)
-max_min_V_within_burst = -40; 
+%n_spikes_per_burst_range = [14 50]; % lobster PD, range (Bucher et al)
+n_spikes_per_burst_range = [4 20]; % i want this
 cycle_period_range = [1.23 1.788]; % mean +/- 1 SD
 burst_duration_range = [0.4490  0.7150]; % PD, sec
 duty_cycle_range = [.3450 .4250];
@@ -87,7 +87,7 @@ time = (1:length(V))*x.dt*1e-3;
 
 if nargout == 0
 	if nargin < 3
-		figure('outerposition',[300 300 1200 500],'PaperUnits','points','PaperSize',[1200 900]); hold on
+		figure('outerposition',[300 400 1200 500],'PaperUnits','points','PaperSize',[1200 900]); hold on
 		ax = gca;
 	end
 	if show_soma
@@ -181,7 +181,7 @@ end
 
 if nargout == 0
 
-	figure('outerposition',[300 300 1200 300],'PaperUnits','points','PaperSize',[1200 900]); hold on
+	figure('outerposition',[300 0 1200 300],'PaperUnits','points','PaperSize',[1200 900]); hold on
 	plot(time,Ca,'k')
 	temp = nonnans(Ca_peak_times);
 	plot(time(temp),Ca(temp),'ro')
@@ -349,6 +349,29 @@ all_duty_cycle = nanmean(all_durations)./all_periods;
 
 cost_vector(4) = cost_vector(4) + level_cost*bin_cost(duty_cycle_range,all_duty_cycle);
 
+
+% now we make sure that the spikes don't go below the slow wave
+
+% first, measure minimum within burst
+V_min_in_burst = all_burst_starts*NaN;
+for i = 1:length(all_burst_starts)
+	if isnan(all_burst_starts(i)) | isnan(all_burst_ends(i))
+		break
+	end
+	V_min_in_burst(i) = min(V(ceil(all_burst_starts(i)*1e3/x.dt): floor(all_burst_ends(i)*1e3/x.dt)));
+end
+
+% measure minimum outside bursts
+V_min_out_burst = all_burst_starts*NaN;
+for i = 2:length(all_burst_starts)
+	if isnan(all_burst_starts(i)) | isnan(all_burst_ends(i))
+		break
+	end
+	V_min_out_burst(i) = min(V(ceil(all_burst_ends(i-1)*1e3/x.dt): floor(all_burst_starts(i)*1e3/x.dt)));
+end
+
+% make sure the bottom of the spikes are at least 5 mV above the slow wave
+cost_vector(4) = cost_vector(4) + level_cost*bin_cost([5 15],nanmean(V_min_in_burst)-nanmean(V_min_out_burst));
 
 C = sum(cost_vector(:));
 
