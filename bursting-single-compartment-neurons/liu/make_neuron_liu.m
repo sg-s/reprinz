@@ -16,7 +16,7 @@ F = 96485; % Faraday constant in SI units
 phi = (2*f*F*vol)/tau_Ca;
 
 x = xolotl;
-x.add('AB','compartment','V',-65,'Ca',0.02,'Cm',10,'A',A,'vol',vol,'phi',phi,'Ca_out',3000,'Ca_in',0.05,'tau_Ca',tau_Ca);
+x.add('compartment','AB','V',-65,'Ca',0.02,'Cm',10,'A',A,'vol',vol,'phi',phi,'Ca_out',3000,'Ca_in',0.05,'tau_Ca',tau_Ca);
 x.AB.add('liu-approx/NaV','gbar',1000,'E',30);
 x.AB.add('liu-approx/CaT','gbar',25,'E',30);
 x.AB.add('liu-approx/CaS','gbar',60,'E',30);
