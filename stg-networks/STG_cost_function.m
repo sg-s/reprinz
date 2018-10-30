@@ -140,7 +140,7 @@ if nargout == 0
 	xlabel(ax(3),'Time (s)')
 end
 
-prettyFig('plw',1);
+% prettyFig('plw',1);
 
 
 C = sum(cost_vector(:));
