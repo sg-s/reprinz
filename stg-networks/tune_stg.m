@@ -22,10 +22,6 @@ lb = 0*seed;
 ub(1:24) = repmat([500; 100; 100; .5; 100; 1250; 1 ; 4000],3,1);
 lb(1:24) = repmat([100; 0  ; 0  ; 0 ;   0;  250; 0 ; 400 ],3,1);
 
-% close to reference network
-%                  A    CaS   CaT  H   KCa  Kd    L   NaV
-ub(1:24) = repmat([500; 60;  25;   .5;  50; 1250; .1; 1000],3,1);
-lb(1:24) = repmat([200; 20 ; 0 ;  .1 ;   0;  250; 0 ; 1e3 ],3,1);
 
 % synapses
 ub(25:31) = 100; % nS
