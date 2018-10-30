@@ -42,12 +42,6 @@ p.sim_func = @STG_cost_function;
 
 n_epochs = 5;
 
-if exist(file_name)
-	load(file_name)
-	start_idx = find(isnan(all_cost),1,'first');
-else
-	start_idx = 1;
-end
 
 p.options.MaxTime = 300;
 p.options.Display = 'iter';
