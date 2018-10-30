@@ -14,12 +14,12 @@ for i = 1:7
 end
 
 
-show_these = shuffle(find(all_cost == 0));
+show_these = shuffle(find(~isnan(all_cost)));
 
 for i = 1:length(show_these)
 
 
-	x.set(x.find('*gbar'),all_g(:,show_these(i)))
+	x.set('*gbar',all_g(:,show_these(i)))
 	bursting_cost_func(x)
 
 	pause(2)

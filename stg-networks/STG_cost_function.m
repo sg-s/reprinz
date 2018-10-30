@@ -51,7 +51,7 @@ C = sum(cost_vector(:));
 CV_Ca_peak_period_range = [0 .1];
 
 n_spikes_per_burst_range = NaN(2,3);
-n_spikes_per_burst_range(:,1) = [4 7.2]; % my calculations, mean +/- 1 SD
+n_spikes_per_burst_range(:,1) = [4 8]; % my calculations, mean +/- 1 SD
 n_spikes_per_burst_range(:,2) = [5 10]; 
 n_spikes_per_burst_range(:,3) = [6 9];
 
@@ -99,7 +99,7 @@ Ca = Ca(cutoff:end,:);
 
 
 for i = 3:-1:1
-	spike_times(:,i) = psychopomp.findNSpikes(V(:,i),1e3);
+	spike_times(:,i) = xolotl.findNSpikeTimes(V(:,i),1e3);
 	n_spikes = sum(~isnan(spike_times(:,i)));
 	if n_spikes > 0
 		% penalize based on expected # of spikes
@@ -123,7 +123,6 @@ for i = 3:-1:1
 	end
 end
 spike_times = spike_times*x.dt*1e-3;
-
 
 time = (1:length(V))*x.dt*1e-3;
 
