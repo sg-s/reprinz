@@ -1,6 +1,6 @@
-% this function makes a soma compartment 
+% this function makes a soma compartment
 % that will eventually be part of a mulit-compartment model
-% with NaV, etc. 
+% with NaV, etc.
 
 function x = make_bursting_soma()
 
