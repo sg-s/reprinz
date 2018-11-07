@@ -11,22 +11,30 @@ if ~exist('synapse_type','var')
 	error('No synapse_type defiend')
 end
 
-if ~exist('n','var')
-	disp('Connecting to neuron DB...')
-	n = neuroDB;
-	n.prefix = 'prinz/';
+if exist('bursters.mat')
+	load('bursters.mat')
+else
+
+	if ~exist('n','var')
+		disp('Connecting to neuron DB...')
+		n = neuroDB;
+		n.prefix = 'prinz/';
+	end
+
+
+	show_these = find(n.results.burst_period > 800 ...
+					& n.results.burst_period < 2e3 ...
+					& n.results.duty_cycle_mean > .3 ...
+					& n.results.duty_cycle_mean < .5 ...
+					& n.results.burst_period_std < .1 ...
+		            & n.results.duty_cycle_std./n.results.duty_cycle_mean < .1 ...
+		            & n.results.min_V_in_burst_mean > n.results.min_V_mean ...
+		            & n.results.min_V_mean < -60 ...
+		            & n.results.spike_peak_std./n.results.spike_peak_mean < .1); 
+
+	all_g = n.results(show_these,:);
+
 end
-
-
-show_these = find(n.results.burst_period > 800 ...
-				& n.results.burst_period < 2e3 ...
-				& n.results.duty_cycle_mean > .3 ...
-				& n.results.duty_cycle_mean < .5 ...
-				& n.results.burst_period_std < .1 ...
-	            & n.results.duty_cycle_std./n.results.duty_cycle_mean < .1 ...
-	            & n.results.min_V_in_burst_mean > n.results.min_V_mean ...
-	            & n.results.min_V_mean < -60 ...
-	            & n.results.spike_peak_std./n.results.spike_peak_mean < .1); 
 
 x = make_cb_network(synapse_type);
 mkdir(synapse_type)
@@ -65,7 +73,7 @@ while true
 
 	try
 
-		g = n.results.all_g(show_these(randi(length(show_these))),:);
+		g = all_g(randi(length(all_g)),:);
 		p.x.set('Burster*gbar',g);
 		p.seed = rand(1,8)*(ub- lb) + lb;
 
