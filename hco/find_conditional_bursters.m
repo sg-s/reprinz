@@ -48,7 +48,7 @@ p.x = x;
 p.parameter_names = x.find('CB*gbar');
 
 
-p.options.UseParallel = false;
+p.options.UseParallel = true;
 seed = x.get(x.find('*gbar'));
 ub = 0*seed;
 lb = 0*seed;
