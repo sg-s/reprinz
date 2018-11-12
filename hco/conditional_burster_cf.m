@@ -2,76 +2,115 @@ function C = conditional_burster_cf(x,~,~)
 
 x.reset;
 
-C = 1e4;
 
-x.t_end = 10e3;
+% don't change these!
+
 x.dt = .1;
 x.sim_dt = .1;
 
 % turn synapse off
 x.synapses.gbar = 0;
 
-x.closed_loop = true;
 
-x.integrate;
-[V,Ca] = x.integrate;
+x.closed_loop = false;
+
+x.t_end = 20e3;
+V = x.integrate;
+V(1:1e4,:) = [];
 
 % does the other neuron spike? 
 m(2) = xtools.V2metrics(V(:,2),'sampling_rate',10,'spike_threshold',-20);
 m(1) = xtools.V2metrics(V(:,1),'sampling_rate',10,'spike_threshold',-20);
 
 if m(2).firing_rate == 0
+	C = 1e4;
 	return
-else
-	C = C - 1e3;
 end
 
-% firing rate should be higher than twice burst period
-if m(2).firing_rate < 2/(m(1).burst_period*1e-3)
-	return
-else
-	C = C - 1e3;
+C = 10*bin_cost([m(1).firing_rate/2, m(1).firing_rate*2],m(2).firing_rate);
+
+
+if nargout == 0
+	disp('Firing rate w/o synapses OK')
 end
 
-% should be firing regularly 
-if m(2).isi_std/m(2).isi_mean > .01
-	return
-else
-	C = C - 1e3;
-end
+C = C+10*bin_cost([0,1e-2],m(2).isi_std/m(2).isi_mean);
+
+
 
 % OK, it's OK w/o synapses
 % now configure the synapse
-C = 1e3;
 
 x.synapses.gbar = 30;
 x.reset;
-x.integrate;
+
+x.t_end = 20e3;
 V = x.integrate;
+V(1:1e4,:) = [];
 
 m(2) = xtools.V2metrics(V(:,2),'sampling_rate',10,'spike_threshold',-20);
 m(1) = xtools.V2metrics(V(:,1),'sampling_rate',10,'spike_threshold',-20);
 
-% follower cell should be bursting, not silent or spiking
-if isnan(m(2).burst_period)
-	return
-elseif  m(2).isi_std/m(2).isi_mean < 1
-	% probably spiking
-	return
-elseif m(2).firing_rate < m(1).firing_rate/2
-	% not firing enough
-	return
+
+C = C+10*bin_cost([m(1).firing_rate*.5, m(1).firing_rate*2],m(2).firing_rate);
+
+
+
+
+
+% find the burst starts and ends in the master cell 
+spike_times = xolotl.findNSpikeTimes(V(:,1),xolotl.findNSpikes(V(:,1)));
+spike_times2 = xolotl.findNSpikeTimes(V(:,2),xolotl.findNSpikes(V(:,2)));
+ibi = 3000;
+burst_ends = spike_times(find(diff(spike_times) > ibi));
+
+burst_starts = find(diff(spike_times) > ibi) + 1;
+burst_starts(burst_starts>length(spike_times)) = [];
+burst_starts = spike_times(burst_starts);
+
+% time = (1:length(V))*1e-3*x.dt;
+% plot(time,V(:,1)); hold on
+% plot(time(burst_starts),V(burst_starts),'ro')
+% plot(time(burst_ends),V(burst_ends),'ko')
+
+if burst_ends(1) < burst_starts(1)
+	burst_ends(1) = [];
 end
 
-% find delays
-Z = zscore(Ca(:,1:2));
-d = finddelay(Z(:,1),Z(:,2));
+n_ok_spikes = 0;
+n_wrong_spikes = 0;
+
+M = min([length(burst_starts) length(burst_ends)]);
+
+for i = 2:M-1
+	n_wrong_spikes = n_wrong_spikes + sum(spike_times2 > burst_starts(i) &  spike_times2 < burst_ends(i));
+
+	n_ok_spikes = n_ok_spikes + sum(spike_times2 > burst_ends(i-1) &  spike_times2 < burst_starts(i));
+
+end
+
+C = C+10*bin_cost([0, .1],n_wrong_spikes/(n_wrong_spikes + n_ok_spikes)) ...
+   +10*bin_cost([.9, 1],n_ok_spikes/(n_wrong_spikes + n_ok_spikes));
 
 
-% burst periods should be the same
-% and the follower cell should burst regularly
+end
 
-C = 10*abs(m(2).burst_period/m(1).burst_period - 1) ...
-    + m(2).ibi_std/m(2).ibi_mean ...
-    + m(2).burst_period_std/m(2).burst_period ...
-    + 20*abs(abs(d/(m(1).burst_period/2)) - 1);
+
+function c = bin_cost(allowed_range,actual_value)
+
+
+	w = (allowed_range(2) - allowed_range(1))/2;
+	m = (allowed_range(2) + allowed_range(1))/2;
+
+	if actual_value < allowed_range(1)
+		d = m - actual_value;
+		c = (1- (w/d));
+	elseif actual_value > allowed_range(2)
+		d = actual_value - m;
+		c = (1- (w/d));
+	else
+		% no cost
+		c = 0;
+	end
+
+end

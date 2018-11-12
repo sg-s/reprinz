@@ -36,15 +36,19 @@ else
 
 end
 
+
+
+
 x = make_cb_network(synapse_type);
 mkdir(synapse_type)
 p = procrustes('particleswarm');
+
 p.x = x;
 
 p.parameter_names = x.find('CB*gbar');
 
-p.options.UseParallel = true;
 
+p.options.UseParallel = false;
 seed = x.get(x.find('*gbar'));
 ub = 0*seed;
 lb = 0*seed;
@@ -65,7 +69,7 @@ p.sim_func = @conditional_burster_cf;
 n_epochs = 2;
 
 
-p.options.MaxTime = 100;
+p.options.MaxTime = 500;
 p.options.Display = 'iter';
 
 
@@ -93,7 +97,7 @@ while true
 
 			file_name = [synapse_type '/' GetMD5(p.seed) '.mat'];
 			g = x.get('*gbar');
-			save(file_name,'g','-v7.3','-nocompression')
+			save(file_name,'g','C','-v7.3','-nocompression')
 
 		end
 
