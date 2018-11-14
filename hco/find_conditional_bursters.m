@@ -69,7 +69,7 @@ p.sim_func = @conditional_burster_cf;
 n_epochs = 2;
 
 
-p.options.MaxTime = 50;
+p.options.MaxTime = 500;
 p.options.Display = 'iter';
 
 
