@@ -69,7 +69,7 @@ p.sim_func = @conditional_burster_cf;
 n_epochs = 2;
 
 
-p.options.MaxTime = 500;
+p.options.MaxTime = 50;
 p.options.Display = 'iter';
 
 
@@ -88,16 +88,19 @@ while true
 		% save
 		x.set(p.parameter_names,p.seed);	
 
-		C = p.sim_func(p.x);
+		[C, Ca_burster, Ca_CB0, Ca_CB1] = p.sim_func(p.x);
 
 		if C < 10
 			% save it
 			disp('Found one!')
 
+			% measure the Calcium levels in the two cells
+			% with and without the synapse 
+
 
 			file_name = [synapse_type '/' GetMD5(p.seed) '.mat'];
 			g = x.get('*gbar');
-			save(file_name,'g','C','-v7.3','-nocompression')
+			save(file_name,'g','C','Ca_burster','Ca_CB0','Ca_CB1','-v7.3','-nocompression')
 
 		end
 

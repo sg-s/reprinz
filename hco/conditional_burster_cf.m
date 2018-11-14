@@ -1,7 +1,10 @@
-function C = conditional_burster_cf(x,~,~)
+function [C, Ca_burster, Ca_CB0, Ca_CB1] = conditional_burster_cf(x,~,~)
 
 x.reset;
 
+Ca_burster = NaN;
+Ca_CB0 = NaN;
+Ca_CB1 = NaN;
 
 % don't change these!
 
@@ -91,6 +94,27 @@ end
 
 C = C+10*bin_cost([0, .1],n_wrong_spikes/(n_wrong_spikes + n_ok_spikes)) ...
    +10*bin_cost([.9, 1],n_ok_spikes/(n_wrong_spikes + n_ok_spikes));
+
+if nargout > 1
+
+	% measure the calcium with the synapse
+	x.synapses.gbar = 30;
+	x.reset;
+	x.t_end = 20e3;
+	[~, Ca] = x.integrate;
+	Ca(1:1e4,:) = [];
+	Ca_burster = mean(Ca(:,1));
+	Ca_CB1 = mean(Ca(:,2));
+
+
+	% measure the calcium without the synapse
+	x.synapses.gbar = 0;
+	x.reset;
+	[~, Ca] = x.integrate;
+	Ca(1:1e4,:) = [];
+	Ca_CB0 = mean(Ca(:,2));
+
+end
 
 
 end
