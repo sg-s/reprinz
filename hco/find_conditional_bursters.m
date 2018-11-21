@@ -97,8 +97,8 @@ while true
 			% measure the Calcium levels in the two cells
 			% with and without the synapse 
 
-
-			file_name = [synapse_type '/' GetMD5(p.seed) '.mat'];
+			H = GetMD5(which(mfilename),'File');
+			file_name = [synapse_type filesep H '_' GetMD5(p.seed) '.mat'];
 			g = x.get('*gbar');
 			save(file_name,'g','C','Ca_burster','Ca_CB0','Ca_CB1','-v7.3','-nocompression')
 
