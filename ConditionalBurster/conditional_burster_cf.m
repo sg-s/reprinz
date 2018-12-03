@@ -1,3 +1,8 @@
+% this cost function can be used to find 
+% neurons that tonically spike without any inhibitory
+% input, and fire bursts between bursts of inhib.
+% synaptic input
+% 
 function [C, Ca_burster, Ca_CB0, Ca_CB1] = conditional_burster_cf(x,~,~)
 
 x.reset;
@@ -12,7 +17,7 @@ x.dt = .1;
 x.sim_dt = .1;
 
 % turn synapse off
-x.synapses.gbar = 0;
+x.set('*gmax',0)
 
 
 x.closed_loop = false;
