@@ -56,7 +56,7 @@ p.options.Display = 'iter';
 
 while true
 
-	%try
+	try
 
 		g_cb = cb_db.g(randi(cb_db.size),:);
 		g_cb(1:8) = [];
@@ -89,8 +89,8 @@ while true
 
 		end
 
-	% catch
-	% 	disp('Something went wrong. Ouch. ')
-	% end
+	catch
+		disp('Something went wrong. Ouch. ')
+	end
 
 end
