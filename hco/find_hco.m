@@ -47,7 +47,7 @@ p.ub = ub;
 
 p.sim_func = @hco_cost_func;
 
-n_epochs = 1;
+n_epochs = 3;
 
 
 p.options.MaxTime = 500;
