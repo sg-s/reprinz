@@ -37,5 +37,5 @@ end
 
 
 % connect cells to each other 
-x.connect('Cell1','Cell2',synapse_type);
-x.connect('Cell2','Cell1',synapse_type);
+x.connect('Cell1','Cell2',cpplab(synapse_type));
+x.connect('Cell2','Cell1',cpplab(synapse_type));

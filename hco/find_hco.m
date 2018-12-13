@@ -47,7 +47,7 @@ p.ub = ub;
 
 p.sim_func = @hco_cost_func;
 
-n_epochs = 2;
+n_epochs = 1;
 
 
 p.options.MaxTime = 500;
@@ -72,7 +72,7 @@ while true
 		% save
 		x.set(p.parameter_names,p.seed);	
 
-		[C, Ca_with, Ca_without] = p.sim_func(p.x);
+		[C, metrics] = p.sim_func(p.x);
 
 		if C == 0 
 			% save it
@@ -85,7 +85,11 @@ while true
 			g = x.get('*gbar');
 			file_name = [synapse_type filesep H '_' GetMD5(g) '.mat'];
 			
-			save(file_name,'g','C','Ca_with','Ca_without','-v7.3','-nocompression')
+			metrics.g = g;
+
+			metrics = Data(metrics);
+
+			metrics.save;
 
 		end
 

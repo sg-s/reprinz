@@ -3,7 +3,7 @@
 % input, and fire bursts between bursts of inhib.
 % synaptic input
 % 
-function [C, Ca_with, Ca_without] = hco_cost_func(x,~,~)
+function [C, metrics] = hco_cost_func(x,~,~)
 
 x.reset;
 
@@ -147,21 +147,77 @@ C = C+10*bin_cost([0, .1],n_wrong_spikes/(n_wrong_spikes + n_ok_spikes)) ...
 
 if nargout > 1
 
-	% measure the calcium with the synapse
+	% measure behaviour with the synapse
+	% and out of phase
 	x.set('*gmax',30);
 	x.reset;
 	x.Cell2.V = 0;
 	x.t_end = 20e3;
-	[~, Ca] = x.integrate;
+	[V, Ca] = x.integrate;
 	Ca(1:1e4,:) = [];
-	Ca_with = [mean(Ca(:,1)); mean(Ca(:,2))];
+	V(1:1e4,:) = [];
+	metrics = xtools.V2metrics(V(:,1),'sampling_rate',10);
+	metrics.Ca_mean = mean(Ca(:,1));
+	metrics.Ca_std = std(Ca(:,1));
+	metrics_new = xtools.V2metrics(V(:,2),'sampling_rate',10);
+	metrics_new.Ca_mean = mean(Ca(:,2));
+	metrics_new.Ca_std = std(Ca(:,2));
+	% concat
+	fn = fieldnames(metrics);
+	for i = 1:length(fn)
+		metrics.(fn{i}) = [metrics.(fn{i}) metrics_new.(fn{i})];
+	end
+
+	% measure behaviour with synapse
+	% and starting in phase
+	x.set('*gmax',30);
+	x.reset;
+	x.t_end = 20e3;
+	[V, Ca] = x.integrate;
+	Ca(1:1e4,:) = [];
+	V(1:1e4,:) = [];
+	metrics_new = xtools.V2metrics(V(:,1),'sampling_rate',10);
+	metrics_new.Ca_mean = mean(Ca(:,1));
+	metrics_new.Ca_std = std(Ca(:,1));
+
+	for i = 1:length(fn)
+		metrics.(fn{i}) = [metrics.(fn{i}) metrics_new.(fn{i})];
+	end
+
+	metrics_new = xtools.V2metrics(V(:,2),'sampling_rate',10);
+	metrics_new.Ca_mean = mean(Ca(:,2));
+	metrics_new.Ca_std = std(Ca(:,2));
+
+	for i = 1:length(fn)
+		metrics.(fn{i}) = [metrics.(fn{i}) metrics_new.(fn{i})];
+	end
+
+
+
 
 	% measure the calcium without the synapse
 	x.set('*gmax',0);
 	x.reset;
-	[~, Ca] = x.integrate;
+	x.t_end = 20e3;
+	[V, Ca] = x.integrate;
 	Ca(1:1e4,:) = [];
-	Ca_without = [mean(Ca(:,1)); mean(Ca(:,2))];
+	V(1:1e4,:) = [];
+	metrics_new = xtools.V2metrics(V(:,1),'sampling_rate',10);
+	metrics_new.Ca_mean = mean(Ca(:,1));
+	metrics_new.Ca_std = std(Ca(:,1));
+
+	for i = 1:length(fn)
+		metrics.(fn{i}) = [metrics.(fn{i}) metrics_new.(fn{i})];
+	end
+
+	metrics_new = xtools.V2metrics(V(:,2),'sampling_rate',10);
+	metrics_new.Ca_mean = mean(Ca(:,2));
+	metrics_new.Ca_std = std(Ca(:,2));
+
+	for i = 1:length(fn)
+		metrics.(fn{i}) = [metrics.(fn{i}) metrics_new.(fn{i})];
+	end
+
 
 end
 
