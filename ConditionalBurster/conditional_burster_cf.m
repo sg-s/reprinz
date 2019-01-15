@@ -103,7 +103,7 @@ C = C+10*bin_cost([0, .1],n_wrong_spikes/(n_wrong_spikes + n_ok_spikes)) ...
 if nargout > 1
 
 	% measure the calcium with the synapse
-	x.synapses.gbar = 30;
+	x.set('*gmax',30)
 	x.reset;
 	x.t_end = 20e3;
 	[~, Ca] = x.integrate;
@@ -113,7 +113,7 @@ if nargout > 1
 
 
 	% measure the calcium without the synapse
-	x.synapses.gbar = 0;
+	x.set('*gmax',0)
 	x.reset;
 	[~, Ca] = x.integrate;
 	Ca(1:1e4,:) = [];
