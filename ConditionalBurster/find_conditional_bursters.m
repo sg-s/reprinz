@@ -41,7 +41,7 @@ end
 
 x = make_cb_network(synapse_type);
 mkdir(synapse_type)
-p = procrustes('particleswarm');
+p = xfit('particleswarm');
 
 p.x = x;
 

@@ -49,7 +49,7 @@ C = C+10*bin_cost([0,1e-2],m(2).isi_std/m(2).isi_mean);
 % OK, it's OK w/o synapses
 % now configure the synapse
 
-x.synapses.gbar = 30;
+x.set('*gmax',30)
 x.reset;
 
 x.t_end = 20e3;
@@ -67,8 +67,8 @@ C = C+10*bin_cost([m(1).firing_rate*.5, m(1).firing_rate*2],m(2).firing_rate);
 
 
 % find the burst starts and ends in the master cell 
-spike_times = xolotl.findNSpikeTimes(V(:,1),xolotl.findNSpikes(V(:,1)));
-spike_times2 = xolotl.findNSpikeTimes(V(:,2),xolotl.findNSpikes(V(:,2)));
+spike_times = xtools.findNSpikeTimes(V(:,1),xtools.findNSpikes(V(:,1)));
+spike_times2 = xtools.findNSpikeTimes(V(:,2),xtools.findNSpikes(V(:,2)));
 ibi = 3000;
 burst_ends = spike_times(find(diff(spike_times) > ibi));
 
