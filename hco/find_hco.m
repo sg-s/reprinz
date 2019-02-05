@@ -19,7 +19,7 @@ cb_db = cb_db.filter(cb_db.C == 0);
 
 x = makeHCONetwork(synapse_type);
 mkdir(synapse_type)
-p = procrustes('particleswarm');
+p = xfit('particleswarm');
 
 p.x = x;
 
@@ -35,13 +35,13 @@ ub = 0*seed;
 lb = 0*seed;
 
 
-%      A    CaS   CaT  H  KCa  Kd    L   NaV
-ub = [500; 100; 100; .5; 100; 1250; 1 ; 4000];
+%      A   CaS  CaT  H   KCa   Kd   L   NaV
+ub = [500; 100; 100; 10; 100; 1250; 1 ; 4000];
 lb = [100; 0  ; 0  ; 0 ;   0;  250; 0 ; 400 ];
 
 
 
-p.seed = rand(8,1).*ub; % random seed
+p.seed = rand(8,1).*(ub-lb) + lb; % random seed
 p.lb = lb;
 p.ub = ub;
 
@@ -59,11 +59,10 @@ while true
 	try
 
 		g_cb = cb_db.g(randi(cb_db.size),:);
-		g_cb(1:8) = [];
-		g_cb(end) = [];
+		g_cb = g_cb(9:end-1);
 
 		p.x.set('Cell1*gbar',g_cb);
-		p.seed = rand(1,8)*(ub- lb) + lb;
+		p.seed = g_cb;
 
 		for j = 1:n_epochs
 			p.fit;
@@ -73,6 +72,7 @@ while true
 		x.set(p.parameter_names,p.seed);	
 
 		[C, metrics] = p.sim_func(p.x);
+
 
 		if C == 0 
 			% save it
