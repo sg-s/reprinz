@@ -74,7 +74,7 @@ while true
 		[C, metrics] = p.sim_func(p.x);
 
 
-		if C == 0 
+		if C < 5
 			% save it
 			disp('Found one!')
 
@@ -86,6 +86,7 @@ while true
 			file_name = [synapse_type filesep H '_' GetMD5(g) '.mat'];
 			
 			metrics.g = g;
+			metrics.C = C;
 
 			metrics = Data(metrics);
 
