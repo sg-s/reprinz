@@ -12,7 +12,7 @@ A1 = 300; % synapse off firing rate
 A2 = 100; % regular spiking cost
 B = 10; % burst period
 C = 100; % duty cycle
-D = 100; % ratio of burt periods for two cells
+D = 100; % nspikes/burst
 E = 100; % ratio of firing rates of two cells
 F = 200; % phase
 
@@ -70,6 +70,9 @@ COST = COST + B*xfit.binCost([500 2e3],m(1).burst_period) + B*xfit.binCost([500 
 COST = COST + C*xfit.binCost([.1 .5],m(1).duty_cycle_mean) + C*xfit.binCost([.1 .5],m(2).duty_cycle_mean);
 
 
+% nspikes/burst
+COST = COST + D*xfit.binCost([4 40],m(1).n_spikes_per_burst_mean);
+COST = COST + D*xfit.binCost([4 40],m(2).n_spikes_per_burst_mean);
 
 % phase
 
