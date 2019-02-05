@@ -60,7 +60,6 @@ lb = [100; 0  ; 0  ; 0 ;   0;  250; 0 ; 400 ];
 
 
 
-p.seed = rand(8,1).*ub; % random seed
 p.lb = lb;
 p.ub = ub;
 
