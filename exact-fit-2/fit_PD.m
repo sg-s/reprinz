@@ -31,7 +31,7 @@ data.max_V = max(V0);
 data.min_V = min(V0);
 data.burst_period = metrics.burst_period;
 data.duty_cycle = metrics.duty_cycle_mean;
-
+data.V0 = V0;
 p.data = data;
 
 % debug
@@ -39,4 +39,5 @@ p.options.UseParallel = true;
 
 p.sim_func = @metricsCost;
 
- p.seed = rand(length(p.seed),1).*(p.ub - p.lb) + p.lb;
+p.seed = rand(length(p.seed),1).*(p.ub - p.lb) + p.lb;
+

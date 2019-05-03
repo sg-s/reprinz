@@ -13,6 +13,11 @@ x.integrate;
 
 V = x.integrate;
 
+if any(isnan(V(:)))
+	C = 100;
+	return
+end
+
 C = 0;
 
 % measure metrics in Axon
@@ -21,6 +26,13 @@ metrics = xtools.V2metrics(V(:,1),'sampling_rate',10);
 C = C + xfit.binCost([data.burst_period - 100, data.burst_period + 100],metrics.burst_period);
 C = C + xfit.binCost([data.duty_cycle - .05, data.duty_cycle + .05],metrics.duty_cycle_mean);
 
+C = C + 5*xfit.binCost([2, 10],metrics.n_spikes_per_burst_mean);
+
+
 % measure minimum and maximum in soma
 C = C + 5*xfit.binCost([data.min_V - 2, data.min_V + 2],min(V(:,2)));
 C = C + 5*xfit.binCost([data.max_V - 2, data.max_V + 2],max(V(:,2)));
+
+% also compare voltage traces directly
+C = C + xtools.voltageCost(data.V0,V(:,2),100);
+
