@@ -15,6 +15,8 @@ load('PD_models.mat')
 N = find(~isnan(all_cost),1,'last');
 show_these = veclib.shuffle(1:N);
 
+show_these = N:-1:1;
+
 figure('outerposition',[300 300 1200 600],'PaperUnits','points','PaperSize',[1200 600]); hold on
 ph = plot(NaN,NaN,'k');
 
@@ -29,6 +31,8 @@ for i = 1:length(show_these)
 	ph.XData = time;
 	ph.YData = V(:,2);
 
-	pause(2)
+	title(show_these(i))
+
+	pause(1)
 
 end

@@ -4,7 +4,7 @@ function fit_PD(MaxTime,n_epochs)
 
 load('isolated_PD')
 V0 = V;
-T = 1e3;
+T = 10;
 V = filtfilt(ones(T,1),T,V);
 V = V(1:9e4);
 V0 = V0(1:9e4);
@@ -34,7 +34,7 @@ data.max_V = max(V0);
 data.min_V = min(V0);
 data.burst_period = metrics.burst_period;
 data.duty_cycle = metrics.duty_cycle_mean;
-data.V0 = V0;
+data.V0 = V;
 p.data = data;
 
 % debug

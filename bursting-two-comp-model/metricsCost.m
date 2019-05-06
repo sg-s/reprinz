@@ -34,7 +34,7 @@ C = C + 5*xfit.binCost([data.min_V - 2, data.min_V + 2],min(V(:,2)));
 C = C + 5*xfit.binCost([data.max_V - 2, data.max_V + 2],max(V(:,2)));
 
 % also compare voltage traces directly
-C = C + xtools.voltageCost(data.V0,V(:,2),100);
+C = C + 10*xtools.voltageCost(data.V0,V(:,2),100);
 
 % also measure the minimum voltage b/w spikes on the PD
 spiketimes = xtools.findNSpikeTimes(V(:,1),xtools.findNSpikes(V(:,1)));
