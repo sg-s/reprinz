@@ -79,7 +79,7 @@ for i = start_idx:N
 			continue
 		end
 
-		if this_cost < 2
+		if this_cost < 4
 
 
 			disp(['Final Cost for this seed is ' strlib.oval(this_cost)])
