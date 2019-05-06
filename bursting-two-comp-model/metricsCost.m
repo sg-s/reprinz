@@ -36,3 +36,33 @@ C = C + 5*xfit.binCost([data.max_V - 2, data.max_V + 2],max(V(:,2)));
 % also compare voltage traces directly
 C = C + xtools.voltageCost(data.V0,V(:,2),100);
 
+% also measure the minimum voltage b/w spikes on the PD
+spiketimes = xtools.findNSpikeTimes(V(:,1),xtools.findNSpikes(V(:,1)));
+
+spiketimes(spiketimes > length(V)) = [];
+
+% burst cost
+BC = 0;
+
+
+if length(spiketimes) > 2
+
+	for i = 2:length(spiketimes)
+
+
+		if (spiketimes(i) - spiketimes(i-1))*x.dt*1e-3 < .3
+			% this is in a burst
+			min_V = min(V(spiketimes(i-1):spiketimes(i),2));
+			BC = BC + xfit.binCost([-40, -36], min_V);
+
+		end
+	end
+	BC = BC/length(spiketimes);
+end
+
+
+
+% spike peaks
+BC = BC + xfit.binCost([-25, 20],max(V(:,2)));
+
+C = C + BC;

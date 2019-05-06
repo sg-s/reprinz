@@ -53,7 +53,7 @@ file_name = 'PD_models.mat';
 
 if exist(file_name)
 	load(file_name)
-	start_idx = find(isnan(all_cost),1,'first');
+	start_idx = find(~isnan(all_cost),1,'last')+1;
 else
 	start_idx = 1;
 end
@@ -71,18 +71,25 @@ for i = start_idx:N
 		end
 
 		% save
-		x.set(p.parameter_names,p.seed);
+		X = p.seed;
+		x.set(p.parameter_names,X);
 		this_cost = p.sim_func(x, p.data);
 
-		if this_cost < .5
+		if isnan(this_cost)
+			continue
+		end
+
+		if this_cost < 2
 
 
-			disp(['Final Cost for this seed is ' strlib.oval(all_cost(i))])
+			disp(['Final Cost for this seed is ' strlib.oval(this_cost)])
 
-			all_params(i,:) = p.seed;
+			all_params(i,:) = X;
 			all_cost(i) = this_cost;
 
 			save(file_name,'all_params','all_cost')
+
+
 		else
 			disp('Cost too high, skipping...')
 		end
