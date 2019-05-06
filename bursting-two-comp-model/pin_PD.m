@@ -1,6 +1,10 @@
 
 
-function fit_PD(MaxTime,n_epochs)
+
+function pin_PD(MaxTime,n_epochs)
+
+% attempts to fit a voltage trace using pin costs
+
 
 load('isolated_PD')
 V0 = V;
@@ -16,15 +20,17 @@ dV0 = [NaN; diff(V0)];
 
 x = makeSTGNeuron;
 
+
+
 % set up the fitter
 p = xfit;
 p.x = x;
 
-p.parameter_names = [x.find('*gbar');'Axon.len'; 'CellBody.len'; 'CellBody.radius'; 'CellBody.CalciumMech.f'; 'CellBody.CalciumMech.tau_Ca'];
+p.parameter_names = [x.find('*gbar');'Axon.len'; 'CellBody.len'; 'CellBody.radius'; 'CellBody.CalciumMech.f'; 'CellBody.CalciumMech.tau_Ca'; 'CellBody.Ca'];
 %      Axon                Soma  
 %      A   Kd    L    NaV   A   CaS  CaT  H    KCa  Kd   L
-p.lb = [10,  100, 0,  100, 10,  1,   1,   1,   10,  10,  0,  .1, .01, .01, 1,  10];
-p.ub = [1e3, 2e3, 10, 3e3, 1e3, 100, 100,  10, 1e3, 2e3, 10,  5,  1,  1,  20, 500];
+p.lb = [10,  100, 0,  1e3, 10,  1,   1,   1,   10,  10,  0,  .1, .01, .01, 1,  10, .05];
+p.ub = [1e3, 1e3, 10, 3e3, 1e3, 100, 100,  10, 1e3, 2e3, 10,  5,  1,  1,  20, 500, 500];
 
 metrics =  xtools.V2metrics(V0,'spike_threshold',-30,'sampling_rate',10);
 
@@ -40,7 +46,7 @@ p.data = data;
 % debug
 p.options.UseParallel = true;
 
-p.sim_func = @metricsCost;
+p.sim_func = @pinCost;
 
 
 
@@ -49,7 +55,7 @@ N = 1e4;
 all_params = NaN(N,length(p.ub));
 all_cost = NaN(N,1);
 
-file_name = 'PD_models.mat';
+file_name = 'pinned_PD_models.mat';
 
 if exist(file_name)
 	load(file_name)
@@ -79,7 +85,7 @@ for i = start_idx:N
 			continue
 		end
 
-		if this_cost < 2
+		if this_cost < 4
 
 
 			disp(['Final Cost for this seed is ' strlib.oval(this_cost)])
