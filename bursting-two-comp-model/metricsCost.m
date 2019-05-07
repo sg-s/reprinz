@@ -26,7 +26,7 @@ metrics = xtools.V2metrics(V(:,1),'sampling_rate',10);
 C = C + xfit.binCost([data.burst_period - 100, data.burst_period + 100],metrics.burst_period);
 C = C + xfit.binCost([data.duty_cycle - .05, data.duty_cycle + .05],metrics.duty_cycle_mean);
 
-C = C + 5*xfit.binCost([2, 10],metrics.n_spikes_per_burst_mean);
+C = C + 5*xfit.binCost([4, 10],metrics.n_spikes_per_burst_mean);
 
 
 % measure minimum and maximum in soma

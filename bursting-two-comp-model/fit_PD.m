@@ -1,6 +1,11 @@
 
 
-function fit_PD(MaxTime,n_epochs)
+function fit_PD(MaxTime,n_epochs, make_plot)
+
+if nargin < 3
+	make_plot = false;
+end
+
 
 load('isolated_PD')
 V0 = V;
@@ -77,6 +82,17 @@ for i = start_idx:N
 
 		if isnan(this_cost)
 			continue
+		end
+
+		if make_plot
+			figure('outerposition',[300 300 1200 600],'PaperUnits','points','PaperSize',[1200 600]); hold on
+			x.integrate;
+			V = x.integrate;
+			time = (1:length(V))*x.dt*1e-3;
+			plot(time,V(:,2),'k')
+			set(gca,'XLim',[0 3])
+
+
 		end
 
 		if this_cost < 4
