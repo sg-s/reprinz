@@ -20,30 +20,12 @@ end
 data = struct;
 for i = 1:size(all_PD,2)
 
-	[pks,locs] = findpeaks(V0(:,i),'MinPeakProminence',5);
+	[spike_amplitudes, spike_peaks, minima_bw_spikes] = measurePDmetrics(V0(:,i));
 
-	min_V_bw_spikes = Inf;
-	max_V_bw_spikes = -Inf;
-
-	for j = 2:length(locs)
-		if locs(j) - locs(j-1) > 1000
-			continue
-		end
-
-		this_min = min(V0(locs(j-1):locs(j),i));
-
-		if this_min < min_V_bw_spikes
-			min_V_bw_spikes = this_min;
-		end
-
-		if this_min > max_V_bw_spikes
-			max_V_bw_spikes = this_min;
-		end
-
-	end
+	spike_amplitude_range = [nanmin(spike_amplitudes) nanmax(spike_amplitudes)];
 
 
-	smallest_spike = min(pks) - .5;
+	smallest_spike = min(spike_peaks) - .5;
 
 
 	metrics =  xtools.V2metrics(V0(:,i),'spike_threshold',smallest_spike,'sampling_rate',10);
@@ -55,8 +37,10 @@ for i = 1:size(all_PD,2)
 	data(i).V0 = V0(:,i);
 	data(i).dV0 = dV0(:,i);
 
-	data(i).V_bw_spikes_range = [min_V_bw_spikes max_V_bw_spikes];
-	data(i).spike_peaks = [min(pks) max(pks)];
+	data(i).spike_amplitude_range = spike_amplitude_range;
+
+	data(i).V_bw_spikes_range = [min(minima_bw_spikes) max(minima_bw_spikes)];
+	data(i).spike_peaks = [min(spike_peaks) max(spike_peaks)];
 
 	data(i).n_spikes_per_burst = metrics.n_spikes_per_burst_mean;
 

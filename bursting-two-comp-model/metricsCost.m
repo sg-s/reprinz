@@ -23,10 +23,10 @@ C = 0;
 % measure metrics in Axon
 metrics = xtools.V2metrics(V(:,1),'sampling_rate',10);
 
-C = C + xfit.binCost([data.burst_period - 100, data.burst_period + 100],metrics.burst_period);
-C = C + xfit.binCost([data.duty_cycle - .05, data.duty_cycle + .05],metrics.duty_cycle_mean);
+C = C + 20*xfit.binCost([data.burst_period - 100, data.burst_period + 100],metrics.burst_period);
+C = C + 10*xfit.binCost([data.duty_cycle - .05, data.duty_cycle + .05],metrics.duty_cycle_mean);
 
-C = C + 5*xfit.binCost([data.n_spikes_per_burst - 1, data.n_spikes_per_burst + 3],metrics.n_spikes_per_burst_mean);
+C = C + 20*xfit.binCost([data.n_spikes_per_burst - 1, data.n_spikes_per_burst + 3],metrics.n_spikes_per_burst_mean);
 
 
 % measure minimum and maximum in soma
@@ -36,39 +36,13 @@ C = C + 5*xfit.binCost([data.max_V - 2, data.max_V + 2],max(V(:,2)));
 % also compare voltage traces directly
 C = C + 10*xtools.voltageCost(data.V0,V(:,2),100);
 
-% also measure the minimum voltage b/w spikes on the PD
-spiketimes = xtools.findNSpikeTimes(V(:,1),xtools.findNSpikes(V(:,1)));
 
-spiketimes(spiketimes > length(V)) = [];
-
-% burst cost
-BC = 0;
+% spike peaks, amplitudes, and minimum b/w spikes
 
 
-if length(spiketimes) > 2
-
-	for i = 2:length(spiketimes)
+[spike_amplitudes, spike_peaks, minima_bw_spikes] = measurePDmetrics(V(:,2));
 
 
-		if (spiketimes(i) - spiketimes(i-1))*x.dt*1e-3 < .3
-			% this is in a burst
-			min_V = min(V(spiketimes(i-1):spiketimes(i),2));
-			BC = BC + xfit.binCost(data.V_bw_spikes_range, min_V);
-
-		end
-	end
-	BC = BC/length(spiketimes);
-end
-
-C = C + BC;
-
-
-
-% spike peaks
-pks = findpeaks(V(:,2),'MinPeakProminence',.5);
-if isempty(pks)
-	pks = 1;
-end
-C = C + xfit.binCost([data.spike_peaks(2) -1 data.spike_peaks(2) +1],max(pks));
-C = C + xfit.binCost([data.spike_peaks(1) -1 data.spike_peaks(1) +1],min(pks));
-
+C = C + 5*xfit.binCost(data.spike_amplitude_range,nanmean(spike_amplitudes));
+C = C + 5*xfit.binCost(data.spike_peaks,nanmean(spike_peaks));
+C = C + 5*xfit.binCost(data.V_bw_spikes_range,nanmean(minima_bw_spikes));
