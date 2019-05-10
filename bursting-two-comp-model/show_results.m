@@ -1,12 +1,13 @@
 % this script shows the best solutions we found
+function show_results(file_name)
 
-x = makeSTGNeuron;
 
+x = xolotl.examples.TwoCompartmentSTG;
 
 
 parameter_names = [x.find('*gbar');'Axon.len'; 'CellBody.len'; 'CellBody.radius'; 'CellBody.CalciumMech.f'; 'CellBody.CalciumMech.tau_Ca'];
 
-load('PD_models')
+load(file_name)
 
 
 N = find(~isnan(all_cost),1,'last');

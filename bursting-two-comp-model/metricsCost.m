@@ -14,7 +14,7 @@ x.integrate;
 V = x.integrate;
 
 if any(isnan(V(:)))
-	C = 100;
+	C = 1e3;
 	return
 end
 
@@ -60,9 +60,15 @@ if length(spiketimes) > 2
 	BC = BC/length(spiketimes);
 end
 
+C = C + BC;
+
 
 
 % spike peaks
-BC = BC + xfit.binCost(data.spike_peaks,max(V(:,2)));
+pks = findpeaks(V(:,2),'MinPeakProminence',.5);
+if isempty(pks)
+	pks = 1;
+end
+C = C + xfit.binCost([data.spike_peaks(2) -1 data.spike_peaks(2) +1],max(pks));
+C = C + xfit.binCost([data.spike_peaks(1) -1 data.spike_peaks(1) +1],min(pks));
 
-C = C + BC;
