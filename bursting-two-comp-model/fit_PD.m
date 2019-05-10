@@ -7,19 +7,64 @@ if nargin < 3
 end
 
 
-load('isolated_PD')
-V0 = V;
+load('all_PD')
+V0 = all_PD;
+dV0 = NaN*V0;
 T = 10;
-V = filtfilt(ones(T,1),T,V);
-V = V(1:9e4);
-V0 = V0(1:9e4);
-dV = [NaN; diff(V)];
-dV0 = [NaN; diff(V0)];
+for i = 1:size(all_PD,2)
+	V0(:,i) = filtfilt(ones(T,1),T,V0(:,i));
+	dV0(:,i) = [NaN; diff(V0(:,i))];
+end
+
+% prepare data to be sent to cost function
+data = struct;
+for i = 1:size(all_PD,2)
+
+	[pks,locs] = findpeaks(V0(:,i),'MinPeakProminence',5);
+
+	min_V_bw_spikes = Inf;
+	max_V_bw_spikes = -Inf;
+
+	for j = 2:length(locs)
+		if locs(j) - locs(j-1) > 1000
+			continue
+		end
+
+		this_min = min(V0(locs(j-1):locs(j),i));
+
+		if this_min < min_V_bw_spikes
+			min_V_bw_spikes = this_min;
+		end
+
+		if this_min > max_V_bw_spikes
+			max_V_bw_spikes = this_min;
+		end
+
+	end
+
+
+	smallest_spike = min(pks) - .5;
+
+
+	metrics =  xtools.V2metrics(V0(:,i),'spike_threshold',smallest_spike,'sampling_rate',10);
+
+	data(i).max_V = max(V0(:,i));
+	data(i).min_V = min(V0(:,i));
+	data(i).burst_period = metrics.burst_period;
+	data(i).duty_cycle = metrics.duty_cycle_mean;
+	data(i).V0 = V0(:,i);
+	data(i).dV0 = dV0(:,i);
+
+	data(i).V_bw_spikes_range = [min_V_bw_spikes max_V_bw_spikes];
+	data(i).spike_peaks = [min(pks) max(pks)];
+
+	data(i).n_spikes_per_burst = metrics.n_spikes_per_burst_mean;
+
+end
 
 
 % set up the neuron
-
-x = makeSTGNeuron;
+x = xolotl.examples.TwoCompartmentSTG;
 
 % set up the fitter
 p = xfit;
@@ -31,15 +76,9 @@ p.parameter_names = [x.find('*gbar');'Axon.len'; 'CellBody.len'; 'CellBody.radiu
 p.lb = [10,  100, 0,  100, 10,  1,   1,   1,   10,  10,  0,  .1, .01, .01, 1,  10];
 p.ub = [1e3, 2e3, 10, 3e3, 1e3, 100, 100,  10, 1e3, 2e3, 10,  5,  1,  1,  20, 500];
 
-metrics =  xtools.V2metrics(V0,'spike_threshold',-30,'sampling_rate',10);
 
-% prepare data to be sent to cost function
-data = struct;
-data.max_V = max(V0);
-data.min_V = min(V0);
-data.burst_period = metrics.burst_period;
-data.duty_cycle = metrics.duty_cycle_mean;
-data.V0 = V;
+
+
 p.data = data;
 
 % debug
@@ -54,7 +93,7 @@ N = 1e4;
 all_params = NaN(N,length(p.ub));
 all_cost = NaN(N,1);
 
-file_name = 'PD_models.mat';
+file_name = [corelib.getComputerName '_PD_models.mat'];
 
 if exist(file_name)
 	load(file_name)
@@ -70,6 +109,10 @@ p.options.Display = 'iter';
 for i = start_idx:N
 	disp(['Starting with random seed #' strlib.oval(i)])
 	try
+
+		% configure the data
+		p.data = data(randi(length(data)));
+
 		p.seed = rand(length(p.seed),1).*(p.ub - p.lb) + p.lb;
 		for j = 1:n_epochs
 			p.fit;

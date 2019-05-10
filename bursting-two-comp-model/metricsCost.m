@@ -26,7 +26,7 @@ metrics = xtools.V2metrics(V(:,1),'sampling_rate',10);
 C = C + xfit.binCost([data.burst_period - 100, data.burst_period + 100],metrics.burst_period);
 C = C + xfit.binCost([data.duty_cycle - .05, data.duty_cycle + .05],metrics.duty_cycle_mean);
 
-C = C + 5*xfit.binCost([4, 10],metrics.n_spikes_per_burst_mean);
+C = C + 5*xfit.binCost([data.n_spikes_per_burst - 1, data.n_spikes_per_burst + 3],metrics.n_spikes_per_burst_mean);
 
 
 % measure minimum and maximum in soma
@@ -53,7 +53,7 @@ if length(spiketimes) > 2
 		if (spiketimes(i) - spiketimes(i-1))*x.dt*1e-3 < .3
 			% this is in a burst
 			min_V = min(V(spiketimes(i-1):spiketimes(i),2));
-			BC = BC + xfit.binCost([-40, -36], min_V);
+			BC = BC + xfit.binCost(data.V_bw_spikes_range, min_V);
 
 		end
 	end
@@ -63,6 +63,6 @@ end
 
 
 % spike peaks
-BC = BC + xfit.binCost([-25, 20],max(V(:,2)));
+BC = BC + xfit.binCost(data.spike_peaks,max(V(:,2)));
 
 C = C + BC;
