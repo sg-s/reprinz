@@ -46,3 +46,6 @@ C = C + 10*xtools.voltageCost(data.V0,V(:,2),100);
 C = C + 5*xfit.binCost(data.spike_amplitude_range,nanmean(spike_amplitudes));
 C = C + 5*xfit.binCost(data.spike_peaks,nanmean(spike_peaks));
 C = C + 5*xfit.binCost(data.V_bw_spikes_range,nanmean(minima_bw_spikes));
+
+% also make sure the spikes are not at very different heights
+C = C + 10*xfit.binCost([0 abs(diff(data.spike_peaks))],max(spike_peaks) - min(spike_peaks));

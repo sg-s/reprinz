@@ -35,6 +35,9 @@ for i = 1:length(show_these)
 	ph.XData = time;
 	ph.YData = V(:,2);
 
+
+	measurePDmetrics(V(:,2))
+
 	title([mat2str(show_these(i)) '  cost = ' strlib.oval(all_cost(show_these(i)))])
 
 	pause(1)

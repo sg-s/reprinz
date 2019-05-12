@@ -95,7 +95,7 @@ for i = start_idx:N
 	try
 
 		% configure the data
-		p.data = data(randi(length(data)));
+		p.data = data(rem(i,length(data))+1);
 
 		p.seed = rand(length(p.seed),1).*(p.ub - p.lb) + p.lb;
 		for j = 1:n_epochs
