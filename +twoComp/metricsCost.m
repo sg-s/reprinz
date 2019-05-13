@@ -40,7 +40,7 @@ C = C + 10*xtools.voltageCost(data.V0,V(:,2),100);
 % spike peaks, amplitudes, and minimum b/w spikes
 
 
-[spike_amplitudes, spike_peaks, minima_bw_spikes] = measurePDmetrics(V(:,2));
+[spike_amplitudes, spike_peaks, minima_bw_spikes] = twoComp.measurePDmetrics(V(:,2));
 
 
 C = C + 5*xfit.binCost(data.spike_amplitude_range,nanmean(spike_amplitudes));
