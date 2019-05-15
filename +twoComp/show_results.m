@@ -42,7 +42,7 @@ save([d filesep 'results.xfit'],'all_hash','all_cost','all_params')
 
 % show some passing ones and throw in the real ones for sport
 
-show_these = [714 530 579 967 244 1173 760 1161 115 765 445 775 1177 635 945 210 51 886 837 407 802 413 924 193 1072];
+show_these = [714 579 967 244 1173 760 1161 115 765 445 775 1177 635 945 51 886 837 407 802 413 924 193 1072];
 
 figure('outerposition',[300 300 801 1100],'PaperUnits','points','PaperSize',[801 1100]); hold on
 
@@ -51,7 +51,7 @@ real_data = real_data(1:4)
 idx = 1;
 
 % add some noise
-p.x.CellBody.add('CurrentNoise','noise_amplitude',1e-1);
+p.x.CellBody.add('CurrentNoise','noise_amplitude',.5);
 
 for i = 1:18
 	subplot(6,3,i); hold on
