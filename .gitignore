@@ -1,3 +1,4 @@
+*.xfit
 *sublime-workspace
 *DS_Store
 *.mat

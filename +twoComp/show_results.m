@@ -77,7 +77,7 @@ for i = 1:18
 	axis off
 end
 
-figlib.pretty('plw',1)
+figlib.pretty('PlotLineWidth',1)
 
 return
 
