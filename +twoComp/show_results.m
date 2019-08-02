@@ -17,7 +17,7 @@ all_cost = all_cost(idx);
 all_hash = all_hash(idx);
 
 % check that the cost is valid
-current_cost_hash = hashlib.md5hash(which(func2str(p.sim_func)));
+current_cost_hash = hashlib.md5hash(which(func2str(p.SimFcn)));
 
 for i = 1:length(all_hash)
 	corelib.textbar(i,length(all_hash))

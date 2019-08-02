@@ -1,4 +1,4 @@
-function p = setup();
+function p = setup()
 
 % set up the neuron
 x = xolotl.examples.TwoCompartmentSTG;
@@ -15,5 +15,5 @@ p.ub = [1e3, 2e3, 10, 3e3, 1e3, 100, 100,  10, 1e3, 2e3, 10,  5,  1,  1,  20, 50
 
 p.options.UseParallel = true;
 
-p.sim_func = @twoComp.metricsCost;
+p.SimFcn = @twoComp.metricsCost;
 p.options.Display = 'iter';
