@@ -1,19 +1,25 @@
 
 
-if ~exist('prefix','var')
-	error('No prefix defiend')
-end
 
-x = make_stg(prefix);
-mkdir(prefix)
-p = procrustes('particleswarm');
+% first, we create our xolotl object
+x = xolotl.examples.networks.pyloric;
+p = xfit;
 p.x = x;
-
-p.parameter_names = x.find('*gbar');
 
 p.options.UseParallel = true;
 
-seed = x.get(x.find('*gbar'));
+
+
+% we assign a cost function
+p.SimFcn = @STG_cost_function;
+
+
+
+% we optimize over all maximal conductances and synapses
+p.FitParameters = [x.find('*gbar'); x.find('*gmax')];
+
+% bounds
+seed = x.get(p.FitParameters);
 ub = 0*seed;
 lb = 0*seed;
 
@@ -28,47 +34,15 @@ ub(25:31) = 100; % nS
 lb(25:31) = 0; % nS
 
 
-
-p.seed = rand(31,1).*ub; % random seed
-x.set(x.find('*gbar'),p.seed);
 p.lb = lb;
 p.ub = ub;
 
-p.sim_func = @STG_cost_function;
+p.SaveParameters = p.FitParameters;
 
-n_epochs = 5;
-
-
-p.options.MaxTime = 300;
-p.options.Display = 'iter';
-
-idx = 1;
-
-while true
-	disp(['Starting with random seed #' oval(idx)])
-	try
-		p.seed = rand(31,1).*(ub-lb) + lb;
-		for j = 1:n_epochs
-			p.fit;
-		end
-
-		% save
-		x.set(x.find('*gbar'),p.seed);	
-		[all_cost,~,all_metrics] = p.sim_func(x);
+p.SaveWhenCostBelow = 1;
 
 
-		disp(['Final Cost for this seed is ' oval(all_cost)])
 
-		all_g = p.seed;
 
-		file_name = [prefix GetMD5(p.seed) '.mat'];
 
-		save(file_name,'all_g','all_metrics','all_cost','-v7.3','-nocompression')
 
-		idx = idx + 1;
-
-	catch
-		disp('Something went wrong. Ouch. ')
-	end
-
-end

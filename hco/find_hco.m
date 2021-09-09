@@ -45,7 +45,7 @@ p.seed = rand(8,1).*(ub-lb) + lb; % random seed
 p.lb = lb;
 p.ub = ub;
 
-p.sim_func = @hco_cost_func;
+p.SimFcn = @hco_cost_func;
 
 n_epochs = 3;
 

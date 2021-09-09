@@ -1,36 +1,33 @@
 %% 
 
 
-% first gather all the data
-system([' scp -r  enkidu.bio.brandeis.edu:~/code/reprinz/reprinz_enkidu.mat ./'])
-system([' scp -r  neuromancer.bio.brandeis.edu:~/code/reprinz/reprinz_meuromancer.mat ./'])
 
-allfiles = dir('reprinz*.mat');
 
-g = NaN(28,2e3);
-C = NaN(2e3,1);
-M = NaN(18,2e3);
+allfiles = dir('prinz/*.mat');
+
+N = length(allfiles);
+
+alldata.gbar = NaN(N,24);
+alldata.gmax = NaN(N,7);
+alldata.metrics = NaN(N,18);
+alldata.cost = NaN(N,1);
 
 for i = 1:length(allfiles)
-	load(allfiles(i).name)
 
-	keep_these = ~isnan(all_cost);
-	all_cost = all_cost(keep_these);
-	all_g = all_g(:,keep_these);
-	all_metrics = all_metrics(:,keep_these);
+	corelib.textbar(i,length(allfiles))
+	load(fullfile(allfiles(i).folder, allfiles(i).name))
 
-	a = find(isnan(C),1,'first');
-	z = a + length(all_cost) - 1;
+	if length(all_cost) > 1
+		error('More than one data pt')
+	end
 
-	% assemble
-	C(a:z) = all_cost;
-	M(:,a:z) = all_metrics;
-	g(:,a:z) = all_g;
+	if isnan(all_cost)
+		continue
+	end
+
+	alldata.gbar(i,:) = all_g(1:24);
+	alldata.gmax(i,:) = all_g(25:end);
+	alldata.cost(i) = all_cost;
+	alldata.metrics(i,:) = all_metrics;
 
 end
-
-% trim
-a = find(isnan(C),1,'first');
-C = C(1:a-1);
-M = M(:,1:a-1);
-g = g(:,1:a-1);

@@ -1,17 +1,20 @@
-make_stg
-show_these = shuffle(find(all_cost == 0 ));
+x = xolotl.examples.networks.pyloric;
 
-for i = 1:length(show_these)
+load prinz_networks.mat	
+alldata = structlib.purge(alldata,alldata.cost~=0);
 
-	pause(3)
-	close all
 
-	x.set(x.find('*gbar'),all_g(:,show_these(i)));	
-	STG_cost_function(x)
+for i = 1:length(alldata.cost)
+
+	
+
+	x.set(x.find('*gbar'),alldata.gbar(i,:));	
+	x.set(x.find('*gmax'),alldata.gmax(i,:));	
+	x.plot
 
 	drawnow
-	close(gcf)
-
+	pause(3)
+	close all
 	
 
 end

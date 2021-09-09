@@ -91,15 +91,15 @@ Delay_PD_PY_range = [.9250 1.3570]; % seconds
 
 level_cost = 1e5;
 
-
+x.closed_loop = true;
+x.integrate;
+x.integrate;
 [V,Ca] = x.integrate;
-cutoff = floor(10e3/x.dt);
-V = V(cutoff:end,:);
-Ca = Ca(cutoff:end,:);
+
 
 
 for i = 3:-1:1
-	spike_times(:,i) = xolotl.findNSpikeTimes(V(:,i),1e3);
+	spike_times(:,i) = xtools.findNSpikeTimes(V(:,i),1e3);
 	n_spikes = sum(~isnan(spike_times(:,i)));
 	if n_spikes > 0
 		% penalize based on expected # of spikes
@@ -187,7 +187,7 @@ Ca_peak_values = NaN(100,3);
 
 
 for i = 1:3
-	[ons,offs] = computeOnsOffs(Ca(:,i) > mean(Ca(:,i))/2);
+	[ons,offs] = veclib.computeOnsOffs(Ca(:,i) > mean(Ca(:,i))/2);
 
 	if length(ons) ~= length(offs)
 		return
@@ -212,10 +212,10 @@ if nargout == 0
 	for i = 3:-1:1
 		ax(i) = subplot(3,1,i); hold on
 		plot(time,Ca(:,i),'k')
-		temp = nonnans(Ca_peak_times(:,i));
+		temp = veclib.nonnans(Ca_peak_times(:,i));
 		plot(time(temp),Ca(temp,i),'ro')
 
-		temp = nonnans(Ca_min_times(:,i));
+		temp = veclib.nonnans(Ca_min_times(:,i));
 		plot(time(temp),Ca(temp,i),'bo')
 	end
 
@@ -228,7 +228,7 @@ Ca_min_times = Ca_min_times*x.dt*1e-3;
 % step 2 of 3 -- check that Ca peaks occur regularly
 
 for i = 1:3
-	this_cv = cv(diff(nonnans(Ca_peak_times(:,i))));
+	this_cv = statlib.cv(diff(veclib.nonnans(Ca_peak_times(:,i))));
 	cost_vector(2,i) = cost_vector(2,i)+  level_cost*bin_cost(CV_Ca_peak_period_range,this_cv)/3;
 end
 
@@ -273,7 +273,7 @@ end
 
 
 for i = 1:3
-	this_n_spikes = nonnans(n_spikes_in_burst(:,i));
+	this_n_spikes = veclib.nonnans(n_spikes_in_burst(:,i));
 	frac_cost = (level_cost/3)/length(this_n_spikes);
 	for j = 1:length(this_n_spikes)
 		if (this_n_spikes(j) <= n_spikes_per_burst_range(2,i)) && (this_n_spikes(j) >= n_spikes_per_burst_range(1,i))
@@ -363,7 +363,7 @@ cost_vector(4,:) = 0;
 
 % measure burst frequencies of all neurons
 for i = 3:-1:1
-	all_periods(i) = mean(diff(nonnans(Ca_min_times(:,i))));
+	all_periods(i) = mean(diff(veclib.nonnans(Ca_min_times(:,i))));
 end
 
 % save this
@@ -402,7 +402,7 @@ C = sum(cost_vector(:));
 
 % measure gaps from PD to LP ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-all_gaps = NaN*nonnans(all_burst_ends(:,1));
+all_gaps = NaN*veclib.nonnans(all_burst_ends(:,1));
 for i = 2:length(all_gaps)-1
 	% Gap can be negative
 	[~,idx] = min(abs(all_burst_ends(i,1) - all_burst_starts(:,2)));
@@ -419,7 +419,7 @@ metrics_vector(13) = nanmean(all_gaps);
 
 % measure gaps from LP to PY ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-all_gaps = NaN*nonnans(all_burst_ends(:,2));
+all_gaps = NaN*veclib.nonnans(all_burst_ends(:,2));
 for i = 2:length(all_gaps)-1
 	% Gap can be negative
 	[~,idx] = min(abs(all_burst_ends(i,2) - all_burst_starts(:,3)));
@@ -437,7 +437,7 @@ metrics_vector(14) = nanmean(all_gaps);
 % for fun, let's also measure the gap from PY to PD
 % but don't add this to the cost because we don't
 % have experimental data on this
-all_gaps = NaN*nonnans(all_burst_ends(:,3));
+all_gaps = NaN*veclib.nonnans(all_burst_ends(:,3));
 for i = 2:length(all_gaps)-1
 	% Gap can be negative
 	[~,idx] = min(abs(all_burst_ends(i,3) - all_burst_starts(:,1)));
@@ -452,7 +452,7 @@ metrics_vector(15) = nanmean(all_gaps);
 % now measure delays
 % delay from PD -> LP
 
-all_delays = NaN*nonnans(all_burst_starts(:,1));
+all_delays = NaN*veclib.nonnans(all_burst_starts(:,1));
 
 for i = 2:length(all_delays)-1
 	% find the first LP onset after this PD onset
@@ -473,7 +473,7 @@ metrics_vector(17) = nanmean(all_delays);
 
 % measure delay from PD -> PY ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-all_delays = NaN*nonnans(all_burst_starts(:,1));
+all_delays = NaN*veclib.nonnans(all_burst_starts(:,1));
 
 for i = 2:length(all_delays)-1
 	% find the first PY onset after this PD onset

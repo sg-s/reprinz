@@ -44,10 +44,10 @@ V(1:1e4,:) = [];
 
 m = xtools.V2metrics(V(:,1),'sampling_rate',10,'spike_threshold',-20);
 
-COST = COST + A1*xfit.binCost([2, 50], m.firing_rate);
+COST = COST + A1*xtools.binCost([2, 50], m.firing_rate);
 
 
-COST = COST + A2*xfit.binCost([0, 1e-2],m.isi_std/m.isi_mean);
+COST = COST + A2*xtools.binCost([0, 1e-2],m.isi_std/m.isi_mean);
 
 
 
@@ -63,16 +63,16 @@ V(1:1e4,:) = [];
 m(2) = xtools.V2metrics(V(:,2),'sampling_rate',10,'spike_threshold',-20);
 m(1) = xtools.V2metrics(V(:,1),'sampling_rate',10,'spike_threshold',-20);
 
-COST = COST + B*xfit.binCost([500 2e3],m(1).burst_period) + B*xfit.binCost([500 2e3],m(2).burst_period);
+COST = COST + B*xtools.binCost([500 2e3],m(1).burst_period) + B*xtools.binCost([500 2e3],m(2).burst_period);
 
 
 % duty cycle
-COST = COST + C*xfit.binCost([.1 .5],m(1).duty_cycle_mean) + C*xfit.binCost([.1 .5],m(2).duty_cycle_mean);
+COST = COST + C*xtools.binCost([.1 .5],m(1).duty_cycle_mean) + C*xtools.binCost([.1 .5],m(2).duty_cycle_mean);
 
 
 % nspikes/burst
-COST = COST + D*xfit.binCost([4 40],m(1).n_spikes_per_burst_mean);
-COST = COST + D*xfit.binCost([4 40],m(2).n_spikes_per_burst_mean);
+COST = COST + D*xtools.binCost([4 40],m(1).n_spikes_per_burst_mean);
+COST = COST + D*xtools.binCost([4 40],m(2).n_spikes_per_burst_mean);
 
 % phase
 
@@ -104,8 +104,8 @@ try
 	end
 
 
-	COST = COST + F*xfit.binCost([0, .1],n_wrong_spikes/(n_wrong_spikes + n_ok_spikes)) ...
-   +F*xfit.binCost([.9, 1],n_ok_spikes/(n_wrong_spikes + n_ok_spikes));
+	COST = COST + F*xtools.binCost([0, .1],n_wrong_spikes/(n_wrong_spikes + n_ok_spikes)) ...
+   +F*xtools.binCost([.9, 1],n_ok_spikes/(n_wrong_spikes + n_ok_spikes));
 catch
 	COST = COST + 2*F;
 end
